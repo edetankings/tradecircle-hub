@@ -6,23 +6,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAddTrade } from "@/hooks/useTrades";
+import { useNavigate } from "react-router-dom";
 
 const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "GBP/JPY", "AUD/USD", "USD/CAD", "NZD/USD", "EUR/GBP", "EUR/JPY", "XAU/USD"];
 const strategies = ["Breakout", "Trend Following", "Scalping", "Mean Reversion", "News Trading", "Range Trading"];
 
 export default function AddTrade() {
   const [form, setForm] = useState({
-    pair: "", type: "Buy" as "Buy" | "Sell", entryPrice: "", exitPrice: "",
+    pair: "", type: "Buy" as string, entryPrice: "", exitPrice: "",
     stopLoss: "", takeProfit: "", lotSize: "", profitLoss: "", date: new Date().toISOString().split("T")[0],
     strategy: "", notes: "",
   });
 
+  const addTrade = useAddTrade();
+  const navigate = useNavigate();
+
   const update = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Trade saved successfully!");
-    setForm({ pair: "", type: "Buy", entryPrice: "", exitPrice: "", stopLoss: "", takeProfit: "", lotSize: "", profitLoss: "", date: new Date().toISOString().split("T")[0], strategy: "", notes: "" });
+    if (!form.pair || !form.entryPrice || !form.exitPrice) {
+      toast.error("Please fill in required fields.");
+      return;
+    }
+
+    try {
+      await addTrade.mutateAsync({
+        pair: form.pair,
+        type: form.type,
+        entry_price: parseFloat(form.entryPrice),
+        exit_price: parseFloat(form.exitPrice),
+        stop_loss: parseFloat(form.stopLoss) || 0,
+        take_profit: parseFloat(form.takeProfit) || 0,
+        lot_size: parseFloat(form.lotSize) || 0,
+        profit_loss: parseFloat(form.profitLoss) || 0,
+        date: form.date,
+        strategy: form.strategy,
+        notes: form.notes,
+      });
+      toast.success("Trade saved!");
+      navigate("/journal");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save trade.");
+    }
   };
 
   const fieldClass = "bg-secondary border-border text-foreground";
@@ -103,8 +130,8 @@ export default function AddTrade() {
           <label className="text-xs font-medium text-muted-foreground">Notes</label>
           <Textarea className={`${fieldClass} min-h-[80px]`} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Trade notes..." />
         </div>
-        <Button type="submit" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
-          <Save className="w-4 h-4 mr-2" /> Save Trade
+        <Button type="submit" className="w-full sm:w-auto" disabled={addTrade.isPending}>
+          <Save className="w-4 h-4 mr-2" /> {addTrade.isPending ? "Saving..." : "Save Trade"}
         </Button>
       </motion.form>
     </div>

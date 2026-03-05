@@ -1,27 +1,32 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { mockTrades } from "@/data/mockData";
+import { useTrades } from "@/hooks/useTrades";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
 export default function Journal() {
+  const { data: trades = [], isLoading } = useTrades();
   const [pairFilter, setPairFilter] = useState("all");
   const [stratFilter, setStratFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
 
-  const pairs = useMemo(() => [...new Set(mockTrades.map((t) => t.pair))], []);
-  const strats = useMemo(() => [...new Set(mockTrades.map((t) => t.strategy))], []);
+  const pairs = useMemo(() => [...new Set(trades.map((t) => t.pair))], [trades]);
+  const strats = useMemo(() => [...new Set(trades.map((t) => t.strategy).filter(Boolean))], [trades]);
 
   const filtered = useMemo(() => {
-    return mockTrades.filter((t) => {
+    return trades.filter((t) => {
       if (pairFilter !== "all" && t.pair !== pairFilter) return false;
       if (stratFilter !== "all" && t.strategy !== stratFilter) return false;
       if (dateFilter && t.date !== dateFilter) return false;
       return true;
     });
-  }, [pairFilter, stratFilter, dateFilter]);
+  }, [trades, pairFilter, stratFilter, dateFilter]);
 
   const fc = "bg-secondary border-border text-foreground";
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64"><div className="text-muted-foreground">Loading...</div></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -30,7 +35,6 @@ export default function Journal() {
         <p className="text-muted-foreground text-sm mt-1">{filtered.length} trades logged</p>
       </motion.div>
 
-      {/* Filters */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-wrap gap-3">
         <Select value={pairFilter} onValueChange={setPairFilter}>
           <SelectTrigger className={`w-36 ${fc}`}><SelectValue placeholder="All Pairs" /></SelectTrigger>
@@ -49,7 +53,6 @@ export default function Journal() {
         <Input type="date" className={`w-40 ${fc}`} value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
       </motion.div>
 
-      {/* Table */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -74,10 +77,10 @@ export default function Journal() {
                     {t.type}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{t.entryPrice}</td>
-                <td className="px-4 py-3 text-muted-foreground">{t.exitPrice}</td>
-                <td className={`px-4 py-3 font-semibold ${t.profitLoss >= 0 ? "text-profit" : "text-loss"}`}>
-                  {t.profitLoss >= 0 ? "+" : ""}${t.profitLoss}
+                <td className="px-4 py-3 text-muted-foreground">{t.entry_price}</td>
+                <td className="px-4 py-3 text-muted-foreground">{t.exit_price}</td>
+                <td className={`px-4 py-3 font-semibold ${t.profit_loss >= 0 ? "text-profit" : "text-loss"}`}>
+                  {t.profit_loss >= 0 ? "+" : ""}${t.profit_loss}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{t.date}</td>
                 <td className="px-4 py-3">
