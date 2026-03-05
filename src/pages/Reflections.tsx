@@ -4,22 +4,48 @@ import { Save, CheckCircle, XCircle, Lightbulb, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const questions = [
-  { key: "plan", label: "Did you follow your trading plan today?", icon: CheckCircle },
-  { key: "mistake", label: "What mistake did you make?", icon: XCircle },
-  { key: "well", label: "What did you do well?", icon: Lightbulb },
-  { key: "improve", label: "What will you improve tomorrow?", icon: ArrowUp },
+  { key: "plan", label: "Did you follow your trading plan today?", icon: CheckCircle, dbKey: "followed_plan" },
+  { key: "mistake", label: "What mistake did you make?", icon: XCircle, dbKey: "mistake" },
+  { key: "well", label: "What did you do well?", icon: Lightbulb, dbKey: "did_well" },
+  { key: "improve", label: "What will you improve tomorrow?", icon: ArrowUp, dbKey: "improvement" },
 ];
 
 export default function Reflections() {
+  const { user } = useAuth();
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const update = (key: string, value: string) => setAnswers((p) => ({ ...p, [key]: value }));
 
-  const handleSave = () => {
-    toast.success("Reflection saved!");
-    setAnswers({});
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    const today = new Date().toISOString().split("T")[0];
+    const { error } = await supabase.from("daily_reflections").upsert(
+      {
+        user_id: user.id,
+        date: today,
+        followed_plan: answers.plan?.toLowerCase().includes("yes") ?? null,
+        mistake: answers.mistake || null,
+        did_well: answers.well || null,
+        improvement: answers.improve || null,
+        notes: null,
+      },
+      { onConflict: "user_id,date" }
+    );
+
+    if (error) {
+      toast.error("Failed to save reflection.");
+    } else {
+      toast.success("Reflection saved!");
+      setAnswers({});
+    }
+    setSaving(false);
   };
 
   return (
@@ -52,8 +78,8 @@ export default function Reflections() {
         ))}
       </div>
 
-      <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
-        <Save className="w-4 h-4 mr-2" /> Save Reflection
+      <Button onClick={handleSave} disabled={saving}>
+        <Save className="w-4 h-4 mr-2" /> {saving ? "Saving..." : "Save Reflection"}
       </Button>
     </div>
   );

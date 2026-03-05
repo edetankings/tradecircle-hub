@@ -2,17 +2,11 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard,
-  Plus,
-  BookOpen,
-  Calendar,
-  BarChart3,
-  Trophy,
-  PenLine,
-  Menu,
-  X,
-  TrendingUp,
+  LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
+  Menu, X, TrendingUp, Link2, LogOut,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -22,11 +16,13 @@ const navItems = [
   { path: "/analytics", label: "Analytics", icon: BarChart3 },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/reflections", label: "Reflections", icon: PenLine },
+  { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { signOut, user } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -63,9 +59,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-4 mx-3 mb-4 glass-card text-center">
-          <p className="text-xs text-muted-foreground">TradeCircle v1.0</p>
-          <p className="text-xs text-muted-foreground mt-1">Free for your circle</p>
+        <div className="p-3 mx-3 mb-4 space-y-3">
+          <div className="glass-card p-3 text-center">
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          </div>
+          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={signOut}>
+            <LogOut className="w-4 h-4 mr-2" /> Sign Out
+          </Button>
         </div>
       </aside>
 
@@ -95,27 +95,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 25 }}
-              className="w-64 h-full bg-sidebar border-r border-border pt-16 px-3 space-y-1"
+              className="w-64 h-full bg-sidebar border-r border-border pt-16 px-3 space-y-1 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {navItems.map((item) => {
-                const active = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                      active
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+              <div className="flex-1 space-y-1">
+                {navItems.map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                        active
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+              <div className="pb-6">
+                <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                </Button>
+              </div>
             </motion.nav>
           </motion.div>
         )}

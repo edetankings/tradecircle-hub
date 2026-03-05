@@ -4,44 +4,47 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
-import { mockTrades } from "@/data/mockData";
+import { useTrades } from "@/hooks/useTrades";
 
 const COLORS = ["#5B8CFF", "#00C896", "#FF4D4F", "#FFBB28", "#8B5CF6", "#EC4899"];
 
 export default function Analytics() {
+  const { data: trades = [], isLoading } = useTrades();
+
   const profitByPair = useMemo(() => {
     const map: Record<string, number> = {};
-    mockTrades.forEach((t) => { map[t.pair] = (map[t.pair] || 0) + t.profitLoss; });
+    trades.forEach((t) => { map[t.pair] = (map[t.pair] || 0) + t.profit_loss; });
     return Object.entries(map).map(([pair, profit]) => ({ pair, profit }));
-  }, []);
+  }, [trades]);
 
   const profitByStrategy = useMemo(() => {
     const map: Record<string, number> = {};
-    mockTrades.forEach((t) => { map[t.strategy] = (map[t.strategy] || 0) + t.profitLoss; });
+    trades.forEach((t) => { if (t.strategy) map[t.strategy] = (map[t.strategy] || 0) + t.profit_loss; });
     return Object.entries(map).map(([strategy, profit]) => ({ strategy, profit }));
-  }, []);
+  }, [trades]);
 
   const dayPerf = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const map: Record<string, { total: number; count: number }> = {};
     days.forEach((d) => (map[d] = { total: 0, count: 0 }));
-    mockTrades.forEach((t) => {
+    trades.forEach((t) => {
       const day = days[new Date(t.date).getDay()];
-      map[day].total += t.profitLoss;
+      map[day].total += t.profit_loss;
       map[day].count++;
     });
     return days.map((d) => ({ day: d, profit: map[d].total, trades: map[d].count }));
-  }, []);
+  }, [trades]);
 
-  const wins = mockTrades.filter((t) => t.profitLoss > 0).length;
+  const wins = trades.filter((t) => t.profit_loss > 0).length;
   const avgRR = useMemo(() => {
-    const rrs = mockTrades.map((t) => {
-      const risk = Math.abs(t.entryPrice - t.stopLoss);
-      const reward = Math.abs(t.exitPrice - t.entryPrice);
+    if (trades.length === 0) return "0.00";
+    const rrs = trades.map((t) => {
+      const risk = Math.abs(t.entry_price - t.stop_loss);
+      const reward = Math.abs(t.exit_price - t.entry_price);
       return risk > 0 ? reward / risk : 0;
     });
     return (rrs.reduce((a, b) => a + b, 0) / rrs.length).toFixed(2);
-  }, []);
+  }, [trades]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload?.length) {
@@ -55,6 +58,23 @@ export default function Analytics() {
     return null;
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64"><div className="text-muted-foreground">Loading...</div></div>;
+  }
+
+  if (trades.length === 0) {
+    return (
+      <div className="space-y-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Strategy Analytics</h1>
+        </motion.div>
+        <div className="glass-card p-12 text-center">
+          <p className="text-muted-foreground">Add trades to see your analytics.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -62,13 +82,12 @@ export default function Analytics() {
         <p className="text-muted-foreground text-sm mt-1">Deep dive into your performance metrics.</p>
       </motion.div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Win Rate", value: `${Math.round((wins / mockTrades.length) * 100)}%` },
+          { label: "Win Rate", value: `${trades.length > 0 ? Math.round((wins / trades.length) * 100) : 0}%` },
           { label: "Avg RR", value: `${avgRR}:1` },
           { label: "Best Pair", value: profitByPair.sort((a, b) => b.profit - a.profit)[0]?.pair || "-" },
-          { label: "Total P/L", value: `$${mockTrades.reduce((s, t) => s + t.profitLoss, 0)}` },
+          { label: "Total P/L", value: `$${trades.reduce((s, t) => s + t.profit_loss, 0)}` },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="stat-card">
             <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -78,7 +97,6 @@ export default function Analytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Profit by Pair */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Profit by Pair</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -94,7 +112,6 @@ export default function Analytics() {
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Profit by Strategy */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Profit by Strategy</h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -115,7 +132,6 @@ export default function Analytics() {
           </div>
         </motion.div>
 
-        {/* Day Performance */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-foreground mb-4">Performance by Day of Week</h3>
           <ResponsiveContainer width="100%" height={220}>
