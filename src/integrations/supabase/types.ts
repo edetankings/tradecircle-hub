@@ -89,6 +89,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          last_synced_at: string | null
           myfxbook_account_id: string | null
           myfxbook_connected: boolean
           myfxbook_username: string | null
@@ -100,6 +101,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          last_synced_at?: string | null
           myfxbook_account_id?: string | null
           myfxbook_connected?: boolean
           myfxbook_username?: string | null
@@ -111,6 +113,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          last_synced_at?: string | null
           myfxbook_account_id?: string | null
           myfxbook_connected?: boolean
           myfxbook_username?: string | null

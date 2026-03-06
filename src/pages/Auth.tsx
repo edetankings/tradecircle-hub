@@ -10,6 +10,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,9 +21,19 @@ export default function Auth() {
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please verify your email before signing in. Check your inbox for the verification link.");
+          }
+          throw error;
+        }
         toast.success("Welcome back!");
       } else {
+        if (password !== confirmPassword) {
+          toast.error("Passwords do not match. Please try again.");
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -32,7 +43,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email to verify.");
+        toast.success("Account created! Check your email to verify before signing in.");
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -50,7 +61,6 @@ export default function Auth() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -63,7 +73,6 @@ export default function Auth() {
           </p>
         </div>
 
-        {/* Form */}
         <div className="glass-card p-6 space-y-5">
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
@@ -113,6 +122,27 @@ export default function Auth() {
               </div>
             </div>
 
+            {!isLogin && (
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    className={`${fc} pl-10`}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required={!isLogin}
+                    minLength={6}
+                  />
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-destructive">Passwords do not match</p>
+                )}
+              </div>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Loading..." : (
                 <>
@@ -125,7 +155,7 @@ export default function Auth() {
 
           <div className="text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); }}
               className="text-sm text-primary hover:underline"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}

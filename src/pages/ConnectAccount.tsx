@@ -1,57 +1,70 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link2, Unlink, ExternalLink } from "lucide-react";
+import { Link2, Unlink, ExternalLink, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 export default function ConnectAccount() {
   const { user } = useAuth();
-  const [username, setUsername] = useState("");
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [accountId, setAccountId] = useState("");
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lastSynced, setLastSynced] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("myfxbook_username, myfxbook_account_id, myfxbook_connected")
+      .select("myfxbook_username, myfxbook_account_id, myfxbook_connected, last_synced_at")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
         if (data) {
-          setUsername(data.myfxbook_username || "");
-          setAccountId(data.myfxbook_account_id || "");
-          setConnected(data.myfxbook_connected);
+          setEmail((data as any).myfxbook_username || "");
+          setAccountId((data as any).myfxbook_account_id || "");
+          setConnected((data as any).myfxbook_connected);
+          setLastSynced((data as any).last_synced_at || null);
         }
       });
   }, [user]);
 
-  const handleConnect = async () => {
-    if (!user || !username.trim() || !accountId.trim()) {
-      toast.error("Please fill in both fields.");
+  const handleSync = async () => {
+    if (!user || !email.trim() || !password.trim() || !accountId.trim()) {
+      toast.error("Please fill in all fields.");
       return;
     }
     setLoading(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        myfxbook_username: username.trim(),
-        myfxbook_account_id: accountId.trim(),
-        myfxbook_connected: true,
-      })
-      .eq("user_id", user.id);
 
-    if (error) {
-      toast.error("Failed to connect account.");
-    } else {
-      setConnected(true);
-      toast.success("Myfxbook account linked!");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("myfxbook-sync", {
+        body: { email: email.trim(), password: password.trim(), accountId: accountId.trim() },
+      });
+
+      if (res.error) {
+        toast.error(res.error.message || "Sync failed.");
+      } else if (res.data?.error) {
+        toast.error(res.data.error);
+      } else {
+        setConnected(true);
+        setLastSynced(res.data.lastSynced);
+        setPassword("");
+        toast.success(`Synced ${res.data.tradesCount} trades from Myfxbook!`);
+        queryClient.invalidateQueries({ queryKey: ["trades"] });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Sync failed.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDisconnect = async () => {
@@ -63,15 +76,17 @@ export default function ConnectAccount() {
         myfxbook_username: null,
         myfxbook_account_id: null,
         myfxbook_connected: false,
-      })
+        last_synced_at: null,
+      } as any)
       .eq("user_id", user.id);
 
     if (error) {
       toast.error("Failed to disconnect.");
     } else {
       setConnected(false);
-      setUsername("");
+      setEmail("");
       setAccountId("");
+      setLastSynced(null);
       toast.success("Account disconnected.");
     }
     setLoading(false);
@@ -99,12 +114,36 @@ export default function ConnectAccount() {
               <span className="font-semibold">Connected to Myfxbook</span>
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Username: <span className="text-foreground">{username}</span></p>
+              <p>Email: <span className="text-foreground">{email}</span></p>
               <p>Account ID: <span className="text-foreground">{accountId}</span></p>
+              {lastSynced && (
+                <p className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Last synced: {formatDistanceToNow(new Date(lastSynced), { addSuffix: true })}
+                </p>
+              )}
             </div>
-            <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
-              <Unlink className="w-4 h-4 mr-2" /> Disconnect
-            </Button>
+
+            {/* Refresh sync */}
+            <div className="space-y-3 pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">Enter your Myfxbook password to refresh trades:</p>
+              <Input
+                type="password"
+                className={fc}
+                placeholder="Myfxbook password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div className="flex gap-3">
+                <Button onClick={handleSync} disabled={loading || !password.trim()} className="flex-1">
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                  {loading ? "Syncing..." : "Refresh Trades"}
+                </Button>
+                <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
+                  <Unlink className="w-4 h-4 mr-2" /> Disconnect
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -115,18 +154,34 @@ export default function ConnectAccount() {
               </a>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">Myfxbook Username</label>
-              <Input className={fc} placeholder="your-username" value={username} onChange={(e) => setUsername(e.target.value)} />
+              <label className="text-xs font-medium text-muted-foreground">Myfxbook Email</label>
+              <Input className={fc} placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">Myfxbook Password</label>
+              <Input type="password" className={fc} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Account ID</label>
               <Input className={fc} placeholder="123456" value={accountId} onChange={(e) => setAccountId(e.target.value)} />
             </div>
-            <Button onClick={handleConnect} disabled={loading} className="w-full">
-              <Link2 className="w-4 h-4 mr-2" /> {loading ? "Connecting..." : "Connect Account"}
+            <Button onClick={handleSync} disabled={loading} className="w-full">
+              <Link2 className="w-4 h-4 mr-2" /> {loading ? "Connecting & Syncing..." : "Connect & Sync Account"}
             </Button>
           </div>
         )}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="glass-card p-4 text-xs text-muted-foreground space-y-1"
+      >
+        <p className="font-medium text-foreground text-sm">How it works</p>
+        <p>• Your credentials are used only to authenticate with Myfxbook's API and are never stored.</p>
+        <p>• Trade history is fetched and saved to your journal automatically.</p>
+        <p>• Dashboard, calendar, and analytics update in real-time after sync.</p>
       </motion.div>
     </div>
   );
