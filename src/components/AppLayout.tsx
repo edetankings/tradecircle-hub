@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, Link2, LogOut,
+  Menu, X, TrendingUp, Link2, LogOut, GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ const navItems = [
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/reflections", label: "Reflections", icon: PenLine },
   { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
+  { path: "/backtesting-guide", label: "Backtesting Guide", icon: GraduationCap },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

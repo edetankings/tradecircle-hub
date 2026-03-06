@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import StatCard from "@/components/StatCard";
 import { useTrades } from "@/hooks/useTrades";
+import { useAuth } from "@/hooks/useAuth";
 import { format, subDays, startOfWeek, isAfter } from "date-fns";
 
 const COLORS = ["#00C896", "#FF4D4F"];
@@ -27,6 +28,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
   const { data: trades = [], isLoading } = useTrades();
+  const { user } = useAuth();
+  const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
 
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -88,8 +91,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Welcome back. Here's your trading overview.</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome, {displayName} 👋</h1>
+        <p className="text-muted-foreground text-sm mt-1">Here's your trading overview.</p>
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
