@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -60,8 +61,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-3 mx-3 mb-4 space-y-3">
-          <div className="glass-card p-3 text-center">
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          <div className="flex items-center justify-between glass-card p-3">
+            <p className="text-xs text-muted-foreground truncate flex-1">{user?.email}</p>
+            <ThemeToggle />
           </div>
           <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={signOut}>
             <LogOut className="w-4 h-4 mr-2" /> Sign Out
@@ -75,9 +77,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <TrendingUp className="w-5 h-5 text-primary" />
           <span className="text-lg font-bold text-foreground">TradeCircle</span>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground p-1">
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground p-1">
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Nav Overlay */}
