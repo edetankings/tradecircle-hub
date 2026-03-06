@@ -14,6 +14,7 @@ import Analytics from "@/pages/Analytics";
 import Leaderboard from "@/pages/Leaderboard";
 import Reflections from "@/pages/Reflections";
 import ConnectAccount from "@/pages/ConnectAccount";
+import BacktestingGuide from "@/pages/BacktestingGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ function ProtectedRoutes() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/reflections" element={<Reflections />} />
         <Route path="/connect" element={<ConnectAccount />} />
+        <Route path="/backtesting-guide" element={<BacktestingGuide />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
