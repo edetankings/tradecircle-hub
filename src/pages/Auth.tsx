@@ -77,12 +77,12 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">Display Name</label>
+                <label className="text-xs font-medium text-muted-foreground">Holder Name (Full Name)</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     className={`${fc} pl-10`}
-                    placeholder="Your name"
+                    placeholder="Enter your full name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     required={!isLogin}

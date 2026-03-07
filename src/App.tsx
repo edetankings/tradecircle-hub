@@ -15,6 +15,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import Reflections from "@/pages/Reflections";
 import ConnectAccount from "@/pages/ConnectAccount";
 import BacktestingGuide from "@/pages/BacktestingGuide";
+import AdminPanel from "@/pages/AdminPanel";
 import Landing from "@/pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ function ProtectedRoutes() {
         <Route path="/reflections" element={<Reflections />} />
         <Route path="/connect" element={<ConnectAccount />} />
         <Route path="/backtesting-guide" element={<BacktestingGuide />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
