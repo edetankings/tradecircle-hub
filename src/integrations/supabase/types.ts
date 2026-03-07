@@ -91,7 +91,11 @@ export type Database = {
           id: string
           last_synced_at: string | null
           myfxbook_account_id: string | null
+          myfxbook_account_name: string | null
+          myfxbook_balance: number | null
+          myfxbook_broker: string | null
           myfxbook_connected: boolean
+          myfxbook_gain: number | null
           myfxbook_username: string | null
           updated_at: string
           user_id: string
@@ -103,7 +107,11 @@ export type Database = {
           id?: string
           last_synced_at?: string | null
           myfxbook_account_id?: string | null
+          myfxbook_account_name?: string | null
+          myfxbook_balance?: number | null
+          myfxbook_broker?: string | null
           myfxbook_connected?: boolean
+          myfxbook_gain?: number | null
           myfxbook_username?: string | null
           updated_at?: string
           user_id: string
@@ -115,7 +123,11 @@ export type Database = {
           id?: string
           last_synced_at?: string | null
           myfxbook_account_id?: string | null
+          myfxbook_account_name?: string | null
+          myfxbook_balance?: number | null
+          myfxbook_broker?: string | null
           myfxbook_connected?: boolean
+          myfxbook_gain?: number | null
           myfxbook_username?: string | null
           updated_at?: string
           user_id?: string
@@ -124,13 +136,16 @@ export type Database = {
       }
       trades: {
         Row: {
+          close_time: string | null
           created_at: string
           date: string
           entry_price: number
           exit_price: number
           id: string
           lot_size: number
+          myfxbook_trade_id: string | null
           notes: string
+          open_time: string | null
           pair: string
           profit_loss: number
           screenshot_url: string | null
@@ -143,13 +158,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          close_time?: string | null
           created_at?: string
           date: string
           entry_price: number
           exit_price: number
           id?: string
           lot_size: number
+          myfxbook_trade_id?: string | null
           notes?: string
+          open_time?: string | null
           pair: string
           profit_loss: number
           screenshot_url?: string | null
@@ -162,13 +180,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          close_time?: string | null
           created_at?: string
           date?: string
           entry_price?: number
           exit_price?: number
           id?: string
           lot_size?: number
+          myfxbook_trade_id?: string | null
           notes?: string
+          open_time?: string | null
           pair?: string
           profit_loss?: number
           screenshot_url?: string | null
