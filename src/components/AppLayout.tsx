@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, Link2, LogOut, GraduationCap,
+  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,11 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { signOut, user } = useAuth();
+  const { signOut, user, isAdmin } = useAuth();
+
+  const allNavItems = isAdmin
+    ? [...navItems, { path: "/admin", label: "Admin Panel", icon: Shield }]
+    : navItems;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -37,7 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="text-xl font-bold text-foreground tracking-tight">TradeCircle</span>
         </div>
         <nav className="flex-1 px-3 space-y-1 mt-2">
-          {navItems.map((item) => {
+          {allNavItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
@@ -105,7 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex-1 space-y-1">
-                {navItems.map((item) => {
+                {allNavItems.map((item) => {
                   const active = location.pathname === item.path;
                   return (
                     <Link
