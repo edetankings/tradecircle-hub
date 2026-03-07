@@ -15,6 +15,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import Reflections from "@/pages/Reflections";
 import ConnectAccount from "@/pages/ConnectAccount";
 import BacktestingGuide from "@/pages/BacktestingGuide";
+import Landing from "@/pages/Landing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,7 +31,7 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
 
   return (
     <AppLayout>
@@ -53,8 +54,15 @@ function ProtectedRoutes() {
 function AuthRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   return <Auth />;
+}
+
+function LandingRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
 }
 
 const App = () => (
@@ -65,6 +73,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/landing" element={<LandingRoute />} />
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
