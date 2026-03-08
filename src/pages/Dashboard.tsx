@@ -7,10 +7,12 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 import StatCard from "@/components/StatCard";
 import { useTrades } from "@/hooks/useTrades";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, subDays, startOfWeek, isAfter } from "date-fns";
+import { format, startOfWeek, isAfter } from "date-fns";
 import AccountSelector from "@/components/AccountSelector";
 
 const COLORS = ["#00C896", "#FF4D4F"];
