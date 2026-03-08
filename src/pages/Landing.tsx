@@ -181,7 +181,7 @@ export default function Landing() {
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-destructive/50" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-[hsl(var(--profit))]/50" />
+                  <div className="w-3 h-3 rounded-full bg-[hsl(var(--profit)/0.5)]" />
                 </div>
                 <div className="flex-1 h-7 rounded-lg bg-muted/40 max-w-sm mx-auto" />
               </div>
