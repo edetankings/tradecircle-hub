@@ -35,7 +35,20 @@ export default function Dashboard() {
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // Filter trades by selected MT account
+  const { data: profile } = useQuery({
+    queryKey: ["profile-balance", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("myfxbook_balance,myfxbook_connected")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const trades = useMemo(() => {
     if (!selectedAccountId) return allTrades;
     return allTrades.filter((t: any) => t.mt_account_id === selectedAccountId);
