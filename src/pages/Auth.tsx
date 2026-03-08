@@ -153,6 +153,14 @@ export default function Auth() {
             </Button>
           </form>
 
+          {isLogin && (
+            <div className="text-center">
+              <a href="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot Password?
+              </a>
+            </div>
+          )}
+
           <div className="text-center">
             <button
               onClick={() => { setIsLogin(!isLogin); setConfirmPassword(""); }}
