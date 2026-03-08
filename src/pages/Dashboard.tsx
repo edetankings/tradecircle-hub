@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import StatCard from "@/components/StatCard";
+import TradingPlanWidget from "@/components/TradingPlanWidget";
 import { useTrades } from "@/hooks/useTrades";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -193,6 +194,9 @@ export default function Dashboard() {
         </div>
         <AccountSelector selectedAccount={selectedAccount} onSelectAccount={setSelectedAccount} />
       </motion.div>
+
+      {/* Trading Plan */}
+      <TradingPlanWidget />
 
       {/* Stat Cards - 8 widgets */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
