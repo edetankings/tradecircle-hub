@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Brain, Camera, BookOpen, Link2, X, Save } from "lucide-react";
+import { Plus, Pencil, Trash2, Brain, Camera, BookOpen, Link2, Save, TrendingUp, Target, BarChart3, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,14 +15,14 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 const EMOTIONS = [
-  { value: "confident", label: "😎 Confident", color: "bg-profit/20 text-profit" },
-  { value: "calm", label: "😌 Calm", color: "bg-primary/20 text-primary" },
+  { value: "confident", label: "😎 Confident", color: "bg-profit/10 text-profit" },
+  { value: "calm", label: "😌 Calm", color: "bg-primary/10 text-primary" },
   { value: "neutral", label: "😐 Neutral", color: "bg-muted text-muted-foreground" },
   { value: "anxious", label: "😰 Anxious", color: "bg-yellow-500/20 text-yellow-400" },
-  { value: "fearful", label: "😨 Fearful", color: "bg-loss/20 text-loss" },
+  { value: "fearful", label: "😨 Fearful", color: "bg-loss/10 text-loss" },
   { value: "greedy", label: "🤑 Greedy", color: "bg-yellow-500/20 text-yellow-400" },
-  { value: "frustrated", label: "😤 Frustrated", color: "bg-loss/20 text-loss" },
-  { value: "revenge", label: "😡 Revenge Trading", color: "bg-loss/20 text-loss" },
+  { value: "frustrated", label: "😤 Frustrated", color: "bg-loss/10 text-loss" },
+  { value: "revenge", label: "😡 Revenge Trading", color: "bg-loss/10 text-loss" },
 ];
 
 interface JournalEntry {
@@ -46,7 +46,6 @@ export default function StrategyJournal() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [emotionFilter, setEmotionFilter] = useState("all");
 
-  // Form state
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tradeIdea, setTradeIdea] = useState("");
@@ -71,6 +70,47 @@ export default function StrategyJournal() {
     if (emotionFilter === "all") return entries;
     return entries.filter((e) => e.emotional_state === emotionFilter);
   }, [entries, emotionFilter]);
+
+  // Strategy Performance Metrics (from real trades)
+  const strategyMetrics = useMemo(() => {
+    const stratMap: Record<string, { trades: typeof trades; name: string }> = {};
+    trades.forEach((t) => {
+      const strat = t.strategy || "Untagged";
+      if (!stratMap[strat]) stratMap[strat] = { trades: [], name: strat };
+      stratMap[strat].trades.push(t);
+    });
+
+    return Object.values(stratMap).map((s) => {
+      const wins = s.trades.filter((t) => t.profit_loss > 0);
+      const losses = s.trades.filter((t) => t.profit_loss < 0);
+      const totalPL = s.trades.reduce((sum, t) => sum + t.profit_loss, 0);
+      const grossProfit = wins.reduce((sum, t) => sum + t.profit_loss, 0);
+      const grossLoss = Math.abs(losses.reduce((sum, t) => sum + t.profit_loss, 0));
+      const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
+      const winRate = s.trades.length > 0 ? (wins.length / s.trades.length) * 100 : 0;
+
+      // Max drawdown
+      let peak = 0, maxDD = 0, balance = 0;
+      const sorted = [...s.trades].sort((a, b) => a.date.localeCompare(b.date));
+      sorted.forEach((t) => {
+        balance += t.profit_loss;
+        if (balance > peak) peak = balance;
+        const dd = peak > 0 ? ((peak - balance) / peak) * 100 : 0;
+        if (dd > maxDD) maxDD = dd;
+      });
+
+      return {
+        name: s.name,
+        totalTrades: s.trades.length,
+        winRate: Math.round(winRate * 10) / 10,
+        totalPL: Math.round(totalPL * 100) / 100,
+        profitFactor: Math.round(profitFactor * 100) / 100,
+        maxDrawdown: Math.round(maxDD * 10) / 10,
+        wins: wins.length,
+        losses: losses.length,
+      };
+    }).sort((a, b) => b.totalPL - a.totalPL);
+  }, [trades]);
 
   const resetForm = () => {
     setTitle(""); setContent(""); setTradeIdea(""); setEmotionalState("neutral");
@@ -136,7 +176,6 @@ export default function StrategyJournal() {
 
   const emotionLabel = (val: string) => EMOTIONS.find((e) => e.value === val) || EMOTIONS[2];
 
-  // Emotion distribution
   const emotionStats = useMemo(() => {
     const map: Record<string, number> = {};
     entries.forEach((e) => { map[e.emotional_state] = (map[e.emotional_state] || 0) + 1; });
@@ -164,7 +203,6 @@ export default function StrategyJournal() {
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-secondary border-border" />
-
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Emotional State</label>
                 <div className="flex flex-wrap gap-2">
@@ -176,40 +214,30 @@ export default function StrategyJournal() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Trade Idea</label>
-                <Textarea placeholder="What's your trade idea? Setup, entry, reasoning..." value={tradeIdea} onChange={(e) => setTradeIdea(e.target.value)} className="bg-secondary border-border" rows={3} />
+                <Textarea placeholder="What's your trade idea?" value={tradeIdea} onChange={(e) => setTradeIdea(e.target.value)} className="bg-secondary border-border" rows={3} />
               </div>
-
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Notes / Reflection</label>
-                <Textarea placeholder="Notes about the trade, lessons learned..." value={content} onChange={(e) => setContent(e.target.value)} className="bg-secondary border-border" rows={4} />
+                <Textarea placeholder="Notes about the trade..." value={content} onChange={(e) => setContent(e.target.value)} className="bg-secondary border-border" rows={4} />
               </div>
-
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Link to Trade</label>
                 <Select value={linkedTradeId || "none"} onValueChange={(v) => setLinkedTradeId(v === "none" ? "" : v)}>
-                  <SelectTrigger className="bg-secondary border-border">
-                    <SelectValue placeholder="Select a trade" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select a trade" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="none">No linked trade</SelectItem>
                     {trades.slice(0, 20).map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.pair} {t.type} — ${t.profit_loss} ({t.date})
-                      </SelectItem>
+                      <SelectItem key={t.id} value={t.id}>{t.pair} {t.type} — ${t.profit_loss} ({t.date})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Screenshot</label>
-                <Input type="file" accept="image/*" className="bg-secondary border-border"
-                  onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)} />
+                <Input type="file" accept="image/*" className="bg-secondary border-border" onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)} />
               </div>
-
               <Button className="w-full gap-2" onClick={() => saveMutation.mutate()} disabled={!title || saveMutation.isPending}>
                 <Save className="w-4 h-4" /> {saveMutation.isPending ? "Saving..." : editingEntry ? "Update Entry" : "Save Entry"}
               </Button>
@@ -218,7 +246,56 @@ export default function StrategyJournal() {
         </Dialog>
       </motion.div>
 
-      {/* Emotion Distribution */}
+      {/* Strategy Performance Cards */}
+      {strategyMetrics.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Strategy Performance (from real trades)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {strategyMetrics.slice(0, 6).map((strat, i) => (
+              <motion.div key={strat.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.04 }} className="glass-card p-4 hover:border-primary/20 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold text-foreground truncate">{strat.name}</h4>
+                  <Badge variant="outline" className={`text-[10px] ${strat.totalPL >= 0 ? "text-profit" : "text-loss"}`}>
+                    {strat.totalPL >= 0 ? "+" : ""}${strat.totalPL}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Target className="w-3 h-3 text-primary" />
+                    <span className="text-[11px] text-muted-foreground">Win Rate</span>
+                    <span className={`text-[11px] font-semibold ml-auto ${strat.winRate >= 50 ? "text-profit" : "text-loss"}`}>{strat.winRate}%</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <BarChart3 className="w-3 h-3 text-primary" />
+                    <span className="text-[11px] text-muted-foreground">Trades</span>
+                    <span className="text-[11px] font-semibold ml-auto text-foreground">{strat.totalTrades}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3 text-primary" />
+                    <span className="text-[11px] text-muted-foreground">PF</span>
+                    <span className={`text-[11px] font-semibold ml-auto ${strat.profitFactor >= 1 ? "text-profit" : "text-loss"}`}>
+                      {strat.profitFactor >= 999 ? "∞" : strat.profitFactor}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-3 h-3 text-loss" />
+                    <span className="text-[11px] text-muted-foreground">DD</span>
+                    <span className="text-[11px] font-semibold ml-auto text-loss">{strat.maxDrawdown}%</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                  <span className="text-profit">{strat.wins}W</span>
+                  <span>/</span>
+                  <span className="text-loss">{strat.losses}L</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Emotion Filters */}
       {emotionStats.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2">
           <button onClick={() => setEmotionFilter("all")}
