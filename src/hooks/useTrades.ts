@@ -55,11 +55,19 @@ export function useAddTrade() {
       date: string;
       strategy: string;
       notes: string;
+      mt_account_id?: string;
+      manual_account_id?: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
+      const { mt_account_id, manual_account_id, ...rest } = trade;
       const { data, error } = await supabase
         .from("trades")
-        .insert({ ...trade, user_id: user.id })
+        .insert({
+          ...rest,
+          user_id: user.id,
+          ...(mt_account_id ? { mt_account_id } : {}),
+          ...(manual_account_id ? { manual_account_id } : {}),
+        } as any)
         .select()
         .single();
       if (error) throw error;
