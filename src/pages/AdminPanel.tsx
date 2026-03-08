@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Search, Users, Monitor, BarChart3 } from "lucide-react";
+import { Shield, Search, Users, Monitor, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface UserRow {
   user_id: string;
@@ -35,83 +42,101 @@ interface AccountRow {
 }
 
 export default function AdminPanel() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    if (!isAdmin) return;
+    setLoading(true);
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, created_at")
+      .order("created_at", { ascending: false });
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+
+    const { data: mtAccounts } = await supabase
+      .from("mt_accounts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const { data: trades } = await supabase
+      .from("trades")
+      .select("user_id, profit_loss");
+
+    const roleMap: Record<string, string> = {};
+    roles?.forEach((r: any) => { roleMap[r.user_id] = r.role; });
+
+    const accountCountMap: Record<string, number> = {};
+    (mtAccounts as any[])?.forEach((a) => {
+      accountCountMap[a.user_id] = (accountCountMap[a.user_id] || 0) + 1;
+    });
+
+    const tradeStatsMap: Record<string, { count: number; profit: number }> = {};
+    (trades as any[])?.forEach((t) => {
+      if (!tradeStatsMap[t.user_id]) tradeStatsMap[t.user_id] = { count: 0, profit: 0 };
+      tradeStatsMap[t.user_id].count++;
+      tradeStatsMap[t.user_id].profit += Number(t.profit_loss);
+    });
+
+    const profileMap: Record<string, string> = {};
+    profiles?.forEach((p) => { profileMap[p.user_id] = p.display_name; });
+
+    if (profiles) {
+      const merged = profiles.map((p) => ({
+        user_id: p.user_id,
+        display_name: p.display_name,
+        created_at: p.created_at,
+        email: "",
+        role: roleMap[p.user_id] || "user",
+        mt_accounts: accountCountMap[p.user_id] || 0,
+        total_trades: tradeStatsMap[p.user_id]?.count || 0,
+        total_profit: tradeStatsMap[p.user_id]?.profit || 0,
+      }));
+      setUsers(merged);
+    }
+
+    if (mtAccounts) {
+      const mappedAccounts = (mtAccounts as any[]).map((a) => ({
+        ...a,
+        user_name: profileMap[a.user_id] || "Unknown",
+      }));
+      setAccounts(mappedAccounts);
+    }
+
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!isAdmin) return;
-    const fetchData = async () => {
-      setLoading(true);
-
-      // Fetch profiles
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, created_at")
-        .order("created_at", { ascending: false });
-
-      // Fetch roles
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
-
-      // Fetch MT accounts
-      const { data: mtAccounts } = await supabase
-        .from("mt_accounts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      // Fetch trade stats per user
-      const { data: trades } = await supabase
-        .from("trades")
-        .select("user_id, profit_loss");
-
-      const roleMap: Record<string, string> = {};
-      roles?.forEach((r: any) => { roleMap[r.user_id] = r.role; });
-
-      const accountCountMap: Record<string, number> = {};
-      (mtAccounts as any[])?.forEach((a) => {
-        accountCountMap[a.user_id] = (accountCountMap[a.user_id] || 0) + 1;
-      });
-
-      const tradeStatsMap: Record<string, { count: number; profit: number }> = {};
-      (trades as any[])?.forEach((t) => {
-        if (!tradeStatsMap[t.user_id]) tradeStatsMap[t.user_id] = { count: 0, profit: 0 };
-        tradeStatsMap[t.user_id].count++;
-        tradeStatsMap[t.user_id].profit += Number(t.profit_loss);
-      });
-
-      const profileMap: Record<string, string> = {};
-      profiles?.forEach((p) => { profileMap[p.user_id] = p.display_name; });
-
-      if (profiles) {
-        const merged = profiles.map((p) => ({
-          user_id: p.user_id,
-          display_name: p.display_name,
-          created_at: p.created_at,
-          email: "",
-          role: roleMap[p.user_id] || "user",
-          mt_accounts: accountCountMap[p.user_id] || 0,
-          total_trades: tradeStatsMap[p.user_id]?.count || 0,
-          total_profit: tradeStatsMap[p.user_id]?.profit || 0,
-        }));
-        setUsers(merged);
-      }
-
-      if (mtAccounts) {
-        const mappedAccounts = (mtAccounts as any[]).map((a) => ({
-          ...a,
-          user_name: profileMap[a.user_id] || "Unknown",
-        }));
-        setAccounts(mappedAccounts);
-      }
-
-      setLoading(false);
-    };
     fetchData();
   }, [isAdmin]);
+
+  const handleDeleteUser = async (userId: string, displayName: string) => {
+    setDeleting(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: userId },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`User "${displayName}" has been deleted.`);
+      // Refresh data
+      await fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete user.");
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -146,8 +171,8 @@ export default function AdminPanel() {
         <p className="text-muted-foreground text-sm mt-1">Manage users, accounts, and trade stats.</p>
       </motion.div>
 
-      <div className="flex items-center gap-3">
-        <div className="glass-card flex items-center gap-2 px-3 py-1 flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="glass-card flex items-center gap-2 px-3 py-1 flex-1 max-w-sm w-full">
           <Search className="w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, broker, or account..."
@@ -169,7 +194,7 @@ export default function AdminPanel() {
         </TabsList>
 
         <TabsContent value="users">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card overflow-hidden">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card overflow-x-auto">
             {loading ? (
               <div className="p-8 text-center text-muted-foreground">Loading users...</div>
             ) : (
@@ -182,28 +207,67 @@ export default function AdminPanel() {
                     <TableHead>Total Trades</TableHead>
                     <TableHead>Total P/L</TableHead>
                     <TableHead>Date Joined</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((u) => (
-                    <TableRow key={u.user_id}>
-                      <TableCell className="font-medium text-foreground">{u.display_name}</TableCell>
-                      <TableCell>
-                        <Badge variant={u.role === "admin" ? "default" : "secondary"}>{u.role}</Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{u.mt_accounts}/3</TableCell>
-                      <TableCell className="text-muted-foreground">{u.total_trades}</TableCell>
-                      <TableCell className={u.total_profit >= 0 ? "text-profit" : "text-loss"}>
-                        ${u.total_profit.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(u.created_at), "MMM d, yyyy")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredUsers.map((u) => {
+                    const isSelf = u.user_id === user?.id;
+                    return (
+                      <TableRow key={u.user_id}>
+                        <TableCell className="font-medium text-foreground">{u.display_name}</TableCell>
+                        <TableCell>
+                          <Badge variant={u.role === "admin" ? "default" : "secondary"}>{u.role}</Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{u.mt_accounts}/3</TableCell>
+                        <TableCell className="text-muted-foreground">{u.total_trades}</TableCell>
+                        <TableCell className={u.total_profit >= 0 ? "text-profit" : "text-loss"}>
+                          ${u.total_profit.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(u.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isSelf ? (
+                            <span className="text-xs text-muted-foreground">You</span>
+                          ) : (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                                  disabled={deleting === u.user_id}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete user account?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete <strong>{u.display_name}</strong>'s account and all their data including trades, journals, reflections, and connected accounts. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteUser(u.user_id, u.display_name)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {deleting === u.user_id ? "Deleting..." : "Delete Account"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {filteredUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No users found.</TableCell>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No users found.</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -213,7 +277,7 @@ export default function AdminPanel() {
         </TabsContent>
 
         <TabsContent value="accounts">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card overflow-hidden">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card overflow-x-auto">
             {loading ? (
               <div className="p-8 text-center text-muted-foreground">Loading accounts...</div>
             ) : (
