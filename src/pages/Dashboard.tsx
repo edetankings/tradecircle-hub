@@ -75,12 +75,12 @@ export default function Dashboard() {
     return { wins, losses, totalPL, todayPL, todayTrades: todayTrades.length, winRate, weeklyPL, bestPair };
   }, [trades, today, weekStart]);
 
-
   const liveBalance = profile?.myfxbook_connected && profile?.myfxbook_balance != null
     ? Number(profile.myfxbook_balance)
     : null;
   const accountEquity = liveBalance ?? stats.totalPL;
 
+  const pieData = [
     { name: "Wins", value: stats.wins },
     { name: "Losses", value: stats.losses },
   ];
