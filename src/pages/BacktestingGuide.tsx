@@ -152,47 +152,65 @@ function GuidesSection() {
 }
 
 function CalculatorsSection() {
-  const [accountBalance, setAccountBalance] = useState("10000");
-  const [riskPercent, setRiskPercent] = useState("2");
-  const [stopLossPips, setStopLossPips] = useState("30");
-  const [pipValue, setPipValue] = useState("10");
+  // Position Size
+  const [psBalance, setPsBalance] = useState("10000");
+  const [psRisk, setPsRisk] = useState("2");
+  const [psSL, setPsSL] = useState("30");
 
-  const calc = useMemo(() => {
-    const balance = parseFloat(accountBalance) || 0;
-    const risk = (parseFloat(riskPercent) || 0) / 100;
-    const sl = parseFloat(stopLossPips) || 1;
-    const pv = parseFloat(pipValue) || 10;
-
+  const posSize = useMemo(() => {
+    const balance = parseFloat(psBalance) || 0;
+    const risk = (parseFloat(psRisk) || 0) / 100;
+    const sl = parseFloat(psSL) || 1;
     const riskAmount = balance * risk;
-    const lotSize = riskAmount / (sl * pv);
-    const rrRatio2 = riskAmount * 2;
-    const rrRatio3 = riskAmount * 3;
+    const lotSize = riskAmount / (sl * 10);
+    return { riskAmount: riskAmount.toFixed(2), lotSize: lotSize.toFixed(2) };
+  }, [psBalance, psRisk, psSL]);
 
-    return {
-      riskAmount: riskAmount.toFixed(2),
-      lotSize: lotSize.toFixed(2),
-      rrRatio2: rrRatio2.toFixed(2),
-      rrRatio3: rrRatio3.toFixed(2),
-    };
-  }, [accountBalance, riskPercent, stopLossPips, pipValue]);
+  // Risk to Reward
+  const [rrEntry, setRrEntry] = useState("1.1000");
+  const [rrSL, setRrSL] = useState("1.0950");
+  const [rrTP, setRrTP] = useState("1.1100");
 
-  // Compounding calculator
-  const [compBalance, setCompBalance] = useState("10000");
-  const [monthlyReturn, setMonthlyReturn] = useState("5");
-  const [months, setMonths] = useState("12");
+  const rrCalc = useMemo(() => {
+    const entry = parseFloat(rrEntry) || 0;
+    const sl = parseFloat(rrSL) || 0;
+    const tp = parseFloat(rrTP) || 0;
+    const risk = Math.abs(entry - sl);
+    const reward = Math.abs(tp - entry);
+    const ratio = risk > 0 ? reward / risk : 0;
+    return { risk: risk.toFixed(5), reward: reward.toFixed(5), ratio: ratio.toFixed(2) };
+  }, [rrEntry, rrSL, rrTP]);
 
-  const compounding = useMemo(() => {
-    const b = parseFloat(compBalance) || 0;
-    const r = (parseFloat(monthlyReturn) || 0) / 100;
-    const m = parseInt(months) || 0;
-    const results: { month: number; balance: number }[] = [];
-    let balance = b;
-    for (let i = 1; i <= m; i++) {
-      balance *= 1 + r;
-      results.push({ month: i, balance: Math.round(balance * 100) / 100 });
-    }
-    return { finalBalance: balance.toFixed(2), totalGain: ((balance - b) / b * 100).toFixed(1), results };
-  }, [compBalance, monthlyReturn, months]);
+  // Profit Calculator
+  const [profitPair, setProfitPair] = useState("EUR/USD");
+  const [profitLot, setProfitLot] = useState("1.0");
+  const [profitEntry, setProfitEntry] = useState("1.1000");
+  const [profitExit, setProfitExit] = useState("1.1050");
+
+  const profitCalc = useMemo(() => {
+    const lot = parseFloat(profitLot) || 0;
+    const entry = parseFloat(profitEntry) || 0;
+    const exit = parseFloat(profitExit) || 0;
+    const pipDiff = (exit - entry) * 10000; // standard pip calculation
+    const isJPY = profitPair.includes("JPY");
+    const pips = isJPY ? (exit - entry) * 100 : pipDiff;
+    const pipVal = isJPY ? 1000 : 10; // approximate per standard lot
+    const pnl = pips * pipVal * lot;
+    return { pips: pips.toFixed(1), pnl: pnl.toFixed(2), isProfit: pnl >= 0 };
+  }, [profitPair, profitLot, profitEntry, profitExit]);
+
+  // Drawdown Calculator
+  const [ddStart, setDdStart] = useState("10000");
+  const [ddEnd, setDdEnd] = useState("8500");
+
+  const ddCalc = useMemo(() => {
+    const start = parseFloat(ddStart) || 0;
+    const end = parseFloat(ddEnd) || 0;
+    const loss = start - end;
+    const pct = start > 0 ? (loss / start) * 100 : 0;
+    const recoveryPct = end > 0 ? (loss / end) * 100 : 0;
+    return { loss: loss.toFixed(2), pct: pct.toFixed(2), recoveryPct: recoveryPct.toFixed(2) };
+  }, [ddStart, ddEnd]);
 
   const fc = "bg-secondary border-border text-foreground";
 
@@ -204,91 +222,179 @@ function CalculatorsSection() {
           <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
             <Calculator className="w-5 h-5 text-primary" />
           </div>
-          <h2 className="text-base font-semibold text-foreground">Position Size Calculator</h2>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Position Size Calculator</h2>
+            <p className="text-xs text-muted-foreground">Calculate the optimal lot size based on your risk parameters.</p>
+          </div>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Account Balance ($)</label>
-            <Input type="number" className={fc} value={accountBalance} onChange={(e) => setAccountBalance(e.target.value)} />
+            <Input type="number" step="any" min="0" className={fc} value={psBalance} onChange={(e) => setPsBalance(e.target.value)} />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Risk (%)</label>
-            <Input type="number" className={fc} value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} />
+            <Input type="number" step="any" min="0" max="100" className={fc} value={psRisk} onChange={(e) => setPsRisk(e.target.value)} />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1.5 block">Stop Loss (pips)</label>
-            <Input type="number" className={fc} value={stopLossPips} onChange={(e) => setStopLossPips(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Pip Value ($)</label>
-            <Input type="number" className={fc} value={pipValue} onChange={(e) => setPipValue(e.target.value)} />
+            <Input type="number" step="any" min="0" className={fc} value={psSL} onChange={(e) => setPsSL(e.target.value)} />
           </div>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Risk Amount", value: `$${calc.riskAmount}`, icon: DollarSign, color: "text-loss" },
-            { label: "Position Size", value: `${calc.lotSize} lots`, icon: BarChart3, color: "text-primary" },
-            { label: "TP at 1:2 RR", value: `$${calc.rrRatio2}`, icon: Target, color: "text-profit" },
-            { label: "TP at 1:3 RR", value: `$${calc.rrRatio3}`, icon: TrendingUp, color: "text-profit" },
-          ].map((item) => (
-            <div key={item.label} className="stat-card">
-              <div className="flex items-center gap-1.5 mb-1">
-                <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-                <p className="text-[10px] text-muted-foreground uppercase">{item.label}</p>
-              </div>
-              <p className={`text-lg font-bold ${item.color}`}>{item.value}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="stat-card">
+            <div className="flex items-center gap-1.5 mb-1">
+              <DollarSign className="w-3.5 h-3.5 text-loss" />
+              <p className="text-[10px] text-muted-foreground uppercase">Risk Amount</p>
             </div>
-          ))}
+            <p className="text-lg font-bold text-loss">${posSize.riskAmount}</p>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center gap-1.5 mb-1">
+              <BarChart3 className="w-3.5 h-3.5 text-primary" />
+              <p className="text-[10px] text-muted-foreground uppercase">Recommended Lot Size</p>
+            </div>
+            <p className="text-lg font-bold text-primary">{posSize.lotSize} lots</p>
+          </div>
         </div>
       </motion.div>
 
-      {/* Compounding Calculator */}
+      {/* Risk to Reward Calculator */}
       <motion.div {...fade(0.1)} className="glass-card p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-profit/15 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-profit" />
+            <Target className="w-5 h-5 text-profit" />
           </div>
-          <h2 className="text-base font-semibold text-foreground">Compounding Calculator</h2>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Risk to Reward Calculator</h2>
+            <p className="text-xs text-muted-foreground">Evaluate the risk/reward ratio before entering a trade.</p>
+          </div>
         </div>
-
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Starting Balance ($)</label>
-            <Input type="number" className={fc} value={compBalance} onChange={(e) => setCompBalance(e.target.value)} />
+            <label className="text-xs text-muted-foreground mb-1.5 block">Entry Price</label>
+            <Input type="number" step="any" className={fc} value={rrEntry} onChange={(e) => setRrEntry(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Monthly Return (%)</label>
-            <Input type="number" className={fc} value={monthlyReturn} onChange={(e) => setMonthlyReturn(e.target.value)} />
+            <label className="text-xs text-muted-foreground mb-1.5 block">Stop Loss</label>
+            <Input type="number" step="any" className={fc} value={rrSL} onChange={(e) => setRrSL(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Months</label>
-            <Input type="number" className={fc} value={months} onChange={(e) => setMonths(e.target.value)} />
+            <label className="text-xs text-muted-foreground mb-1.5 block">Take Profit</label>
+            <Input type="number" step="any" className={fc} value={rrTP} onChange={(e) => setRrTP(e.target.value)} />
           </div>
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="stat-card">
+            <p className="text-[10px] text-muted-foreground uppercase mb-1">Risk (pips)</p>
+            <p className="text-lg font-bold text-loss">{rrCalc.risk}</p>
+          </div>
+          <div className="stat-card">
+            <p className="text-[10px] text-muted-foreground uppercase mb-1">Reward (pips)</p>
+            <p className="text-lg font-bold text-profit">{rrCalc.reward}</p>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Zap className="w-3.5 h-3.5 text-primary" />
+              <p className="text-[10px] text-muted-foreground uppercase">R:R Ratio</p>
+            </div>
+            <p className={`text-xl font-bold ${parseFloat(rrCalc.ratio) >= 2 ? "text-profit" : parseFloat(rrCalc.ratio) >= 1 ? "text-yellow-400" : "text-loss"}`}>
+              1:{rrCalc.ratio}
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
+      {/* Profit Calculator */}
+      <motion.div {...fade(0.15)} className="glass-card p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Profit Calculator</h2>
+            <p className="text-xs text-muted-foreground">Calculate profit or loss for a trade.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Pair</label>
+            <select className={`w-full h-10 rounded-md px-3 text-sm ${fc}`} value={profitPair} onChange={(e) => setProfitPair(e.target.value)}>
+              {["EUR/USD", "GBP/USD", "USD/JPY", "GBP/JPY", "AUD/USD", "USD/CAD", "NZD/USD", "EUR/GBP", "EUR/JPY", "XAU/USD"].map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Lot Size</label>
+            <Input type="number" step="any" min="0" className={fc} value={profitLot} onChange={(e) => setProfitLot(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Entry Price</label>
+            <Input type="number" step="any" className={fc} value={profitEntry} onChange={(e) => setProfitEntry(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Exit Price</label>
+            <Input type="number" step="any" className={fc} value={profitExit} onChange={(e) => setProfitExit(e.target.value)} />
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="stat-card">
-            <p className="text-[10px] text-muted-foreground uppercase mb-1">Final Balance</p>
-            <p className="text-lg font-bold text-profit">${compounding.finalBalance}</p>
+            <p className="text-[10px] text-muted-foreground uppercase mb-1">Pips</p>
+            <p className={`text-lg font-bold ${profitCalc.isProfit ? "text-profit" : "text-loss"}`}>{profitCalc.pips}</p>
           </div>
           <div className="stat-card">
-            <p className="text-[10px] text-muted-foreground uppercase mb-1">Total Return</p>
-            <p className="text-lg font-bold text-profit">{compounding.totalGain}%</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <DollarSign className={`w-3.5 h-3.5 ${profitCalc.isProfit ? "text-profit" : "text-loss"}`} />
+              <p className="text-[10px] text-muted-foreground uppercase">Profit / Loss</p>
+            </div>
+            <p className={`text-xl font-bold ${profitCalc.isProfit ? "text-profit" : "text-loss"}`}>
+              {profitCalc.isProfit ? "+" : ""}${profitCalc.pnl}
+            </p>
           </div>
         </div>
+      </motion.div>
 
-        {compounding.results.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {compounding.results.map((r) => (
-              <div key={r.month} className="text-center p-2 bg-secondary/50 rounded-lg">
-                <p className="text-[10px] text-muted-foreground">Month {r.month}</p>
-                <p className="text-xs font-semibold text-foreground">${r.balance.toLocaleString()}</p>
-              </div>
-            ))}
+      {/* Drawdown Calculator */}
+      <motion.div {...fade(0.2)} className="glass-card p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-loss/15 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-loss" />
           </div>
-        )}
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Drawdown Calculator</h2>
+            <p className="text-xs text-muted-foreground">Calculate drawdown percentage and recovery needed.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Starting Balance ($)</label>
+            <Input type="number" step="any" min="0" className={fc} value={ddStart} onChange={(e) => setDdStart(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Current / Lowest Balance ($)</label>
+            <Input type="number" step="any" min="0" className={fc} value={ddEnd} onChange={(e) => setDdEnd(e.target.value)} />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="stat-card">
+            <p className="text-[10px] text-muted-foreground uppercase mb-1">Loss Amount</p>
+            <p className="text-lg font-bold text-loss">${ddCalc.loss}</p>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Percent className="w-3.5 h-3.5 text-loss" />
+              <p className="text-[10px] text-muted-foreground uppercase">Drawdown</p>
+            </div>
+            <p className={`text-xl font-bold ${parseFloat(ddCalc.pct) > 20 ? "text-loss" : parseFloat(ddCalc.pct) > 10 ? "text-yellow-400" : "text-profit"}`}>
+              {ddCalc.pct}%
+            </p>
+          </div>
+          <div className="stat-card">
+            <p className="text-[10px] text-muted-foreground uppercase mb-1">Recovery Needed</p>
+            <p className="text-lg font-bold text-primary">{ddCalc.recoveryPct}%</p>
+          </div>
+        </div>
       </motion.div>
     </div>
   );
