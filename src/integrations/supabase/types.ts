@@ -387,6 +387,51 @@ export type Database = {
           },
         ]
       }
+      trading_plans: {
+        Row: {
+          allowed_pairs: string[]
+          created_at: string
+          daily_loss_limit: number
+          discipline_notes: string
+          id: string
+          max_risk_per_trade: number
+          max_trades_per_day: number
+          strategy_rules: string
+          trading_sessions: string[]
+          updated_at: string
+          user_id: string
+          weekly_loss_limit: number
+        }
+        Insert: {
+          allowed_pairs?: string[]
+          created_at?: string
+          daily_loss_limit?: number
+          discipline_notes?: string
+          id?: string
+          max_risk_per_trade?: number
+          max_trades_per_day?: number
+          strategy_rules?: string
+          trading_sessions?: string[]
+          updated_at?: string
+          user_id: string
+          weekly_loss_limit?: number
+        }
+        Update: {
+          allowed_pairs?: string[]
+          created_at?: string
+          daily_loss_limit?: number
+          discipline_notes?: string
+          id?: string
+          max_risk_per_trade?: number
+          max_trades_per_day?: number
+          strategy_rules?: string
+          trading_sessions?: string[]
+          updated_at?: string
+          user_id?: string
+          weekly_loss_limit?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
