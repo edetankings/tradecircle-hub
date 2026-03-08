@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   DollarSign, TrendingUp, BarChart3, Target, Calendar, Star,
@@ -11,6 +11,7 @@ import StatCard from "@/components/StatCard";
 import { useTrades } from "@/hooks/useTrades";
 import { useAuth } from "@/hooks/useAuth";
 import { format, subDays, startOfWeek, isAfter } from "date-fns";
+import AccountSelector from "@/components/AccountSelector";
 
 const COLORS = ["#00C896", "#FF4D4F"];
 
@@ -27,9 +28,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
-  const { data: trades = [], isLoading } = useTrades();
+  const { data: allTrades = [], isLoading } = useTrades();
   const { user } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+  // Filter trades by selected MT account (if any)
+  const trades = useMemo(() => {
+    if (!selectedAccountId) return allTrades;
+    // Future: filter by account when trades have mt_account_id
+    return allTrades;
+  }, [allTrades, selectedAccountId]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -90,9 +99,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome, {displayName} 👋</h1>
-        <p className="text-muted-foreground text-sm mt-1">Here's your trading overview.</p>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome, {displayName} 👋</h1>
+          <p className="text-muted-foreground text-sm mt-1">Here's your trading overview.</p>
+        </div>
+        <AccountSelector selectedAccountId={selectedAccountId} onSelectAccount={setSelectedAccountId} />
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

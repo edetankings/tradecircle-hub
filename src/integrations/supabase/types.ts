@@ -83,6 +83,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mt_accounts: {
+        Row: {
+          account_number: string
+          broker_name: string
+          created_at: string
+          id: string
+          investor_password: string
+          is_active: boolean
+          last_synced_at: string | null
+          platform: string
+          server_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          broker_name: string
+          created_at?: string
+          id?: string
+          investor_password: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          platform?: string
+          server_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          broker_name?: string
+          created_at?: string
+          id?: string
+          investor_password?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          platform?: string
+          server_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
