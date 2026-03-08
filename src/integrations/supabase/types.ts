@@ -106,6 +106,48 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_accounts: {
+        Row: {
+          account_balance: number
+          account_currency: string
+          account_equity: number
+          account_name: string
+          account_type: string
+          broker_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_balance?: number
+          account_currency?: string
+          account_equity?: number
+          account_name: string
+          account_type?: string
+          broker_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_balance?: number
+          account_currency?: string
+          account_equity?: number
+          account_name?: string
+          account_type?: string
+          broker_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mt_accounts: {
         Row: {
           account_label: string
@@ -261,6 +303,7 @@ export type Database = {
           exit_price: number
           id: string
           lot_size: number
+          manual_account_id: string | null
           mt_account_id: string | null
           myfxbook_trade_id: string | null
           notes: string
@@ -285,6 +328,7 @@ export type Database = {
           exit_price: number
           id?: string
           lot_size: number
+          manual_account_id?: string | null
           mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
@@ -309,6 +353,7 @@ export type Database = {
           exit_price?: number
           id?: string
           lot_size?: number
+          manual_account_id?: string | null
           mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
@@ -326,6 +371,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trades_manual_account_id_fkey"
+            columns: ["manual_account_id"]
+            isOneToOne: false
+            referencedRelation: "manual_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trades_mt_account_id_fkey"
             columns: ["mt_account_id"]

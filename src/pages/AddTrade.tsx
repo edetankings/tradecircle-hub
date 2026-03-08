@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useAddTrade } from "@/hooks/useTrades";
 import { useNavigate } from "react-router-dom";
+import { useMTAccounts } from "@/hooks/useMTAccounts";
+import { useManualAccounts } from "@/hooks/useManualAccounts";
 
 const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "GBP/JPY", "AUD/USD", "USD/CAD", "NZD/USD", "EUR/GBP", "EUR/JPY", "XAU/USD"];
 const strategies = ["Breakout", "Trend Following", "Scalping", "Mean Reversion", "News Trading", "Range Trading"];
@@ -16,13 +18,24 @@ export default function AddTrade() {
   const [form, setForm] = useState({
     pair: "", type: "Buy" as string, entryPrice: "", exitPrice: "",
     stopLoss: "", takeProfit: "", lotSize: "", profitLoss: "", date: new Date().toISOString().split("T")[0],
-    strategy: "", notes: "",
+    strategy: "", notes: "", accountId: "", accountType: "" as "" | "mt" | "manual",
   });
 
   const addTrade = useAddTrade();
   const navigate = useNavigate();
+  const { accounts: mtAccounts } = useMTAccounts();
+  const { accounts: manualAccounts } = useManualAccounts();
 
   const update = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
+
+  const handleAccountChange = (value: string) => {
+    if (value === "none") {
+      setForm((p) => ({ ...p, accountId: "", accountType: "" }));
+    } else {
+      const [type, id] = value.split(":");
+      setForm((p) => ({ ...p, accountId: id, accountType: type as "mt" | "manual" }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +57,8 @@ export default function AddTrade() {
         date: form.date,
         strategy: form.strategy,
         notes: form.notes,
+        mt_account_id: form.accountType === "mt" ? form.accountId : undefined,
+        manual_account_id: form.accountType === "manual" ? form.accountId : undefined,
       });
       toast.success("Trade saved!");
       navigate("/journal");
@@ -53,6 +68,7 @@ export default function AddTrade() {
   };
 
   const fieldClass = "bg-secondary border-border text-foreground";
+  const accountValue = form.accountId ? `${form.accountType}:${form.accountId}` : "none";
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -68,6 +84,25 @@ export default function AddTrade() {
         onSubmit={handleSubmit}
         className="glass-card p-6 space-y-5"
       >
+        {/* Account Selector */}
+        {(mtAccounts.length > 0 || manualAccounts.length > 0) && (
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Assign to Account</label>
+            <Select value={accountValue} onValueChange={handleAccountChange}>
+              <SelectTrigger className={fieldClass}><SelectValue placeholder="No account (general)" /></SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                <SelectItem value="none">No account (general)</SelectItem>
+                {mtAccounts.map((a) => (
+                  <SelectItem key={a.id} value={`mt:${a.id}`}>{a.account_label} — {a.broker_name} ({a.platform})</SelectItem>
+                ))}
+                {manualAccounts.map((a) => (
+                  <SelectItem key={a.id} value={`manual:${a.id}`}>{a.account_name} — {a.broker_name || "Manual"} ({a.account_type})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">Pair</label>

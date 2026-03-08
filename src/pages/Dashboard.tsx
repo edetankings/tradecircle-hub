@@ -13,7 +13,8 @@ import { useTrades } from "@/hooks/useTrades";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format, startOfWeek, isAfter } from "date-fns";
-import AccountSelector from "@/components/AccountSelector";
+import AccountSelector, { SelectedAccount } from "@/components/AccountSelector";
+import { useManualAccounts } from "@/hooks/useManualAccounts";
 
 const COLORS = ["#00C896", "#FF4D4F"];
 
@@ -32,8 +33,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function Dashboard() {
   const { data: allTrades = [], isLoading } = useTrades();
   const { user } = useAuth();
+  const { accounts: manualAccounts } = useManualAccounts();
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<SelectedAccount>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile-balance", user?.id],
@@ -50,9 +52,12 @@ export default function Dashboard() {
   });
 
   const trades = useMemo(() => {
-    if (!selectedAccountId) return allTrades;
-    return allTrades.filter((t: any) => t.mt_account_id === selectedAccountId);
-  }, [allTrades, selectedAccountId]);
+    if (!selectedAccount) return allTrades;
+    if (selectedAccount.type === "mt") {
+      return allTrades.filter((t: any) => t.mt_account_id === selectedAccount.id);
+    }
+    return allTrades.filter((t: any) => t.manual_account_id === selectedAccount.id);
+  }, [allTrades, selectedAccount]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -67,7 +72,6 @@ export default function Dashboard() {
     const weeklyTrades = trades.filter((t) => isAfter(new Date(t.date), weekStart));
     const weeklyPL = weeklyTrades.reduce((s, t) => s + t.profit_loss, 0);
 
-    // Best pair
     const pairMap: Record<string, number> = {};
     trades.forEach((t) => { pairMap[t.pair] = (pairMap[t.pair] || 0) + t.profit_loss; });
     const bestPair = Object.entries(pairMap).sort((a, b) => b[1] - a[1])[0];
@@ -75,10 +79,33 @@ export default function Dashboard() {
     return { wins, losses, totalPL, todayPL, todayTrades: todayTrades.length, winRate, weeklyPL, bestPair };
   }, [trades, today, weekStart]);
 
-  const liveBalance = profile?.myfxbook_connected && profile?.myfxbook_balance != null
-    ? Number(profile.myfxbook_balance)
+  // Determine balance display
+  const selectedManual = selectedAccount?.type === "manual"
+    ? manualAccounts.find((a) => a.id === selectedAccount.id)
     : null;
+
+  const liveBalance = selectedManual
+    ? Number(selectedManual.account_balance) + stats.totalPL
+    : profile?.myfxbook_connected && profile?.myfxbook_balance != null && !selectedAccount
+      ? Number(profile.myfxbook_balance)
+      : null;
   const accountEquity = liveBalance ?? stats.totalPL;
+
+  const balanceLabel = selectedManual
+    ? "Account Balance"
+    : liveBalance !== null
+      ? "Account Balance"
+      : "Net P/L";
+  const balanceSubtext = selectedManual
+    ? `Starting: $${Number(selectedManual.account_balance).toLocaleString()}`
+    : liveBalance !== null
+      ? "Live balance"
+      : "Calculated from synced/manual trades";
+
+  // Header account name
+  const accountTitle = selectedManual
+    ? selectedManual.account_name
+    : null;
 
   const pieData = [
     { name: "Wins", value: stats.wins },
@@ -88,16 +115,14 @@ export default function Dashboard() {
   const equityCurveData = useMemo(() => {
     if (trades.length === 0) return [];
     const sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date));
-    let balance = 10000;
-    const points: { date: string; balance: number }[] = [];
+    let balance = selectedManual ? Number(selectedManual.account_balance) : 10000;
     const byDate: Record<string, number> = {};
     sorted.forEach((t) => { byDate[t.date] = (byDate[t.date] || 0) + t.profit_loss; });
-    Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, pnl]) => {
+    return Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0])).map(([date, pnl]) => {
       balance += pnl;
-      points.push({ date: format(new Date(date), "MMM d"), balance: Math.round(balance) });
+      return { date: format(new Date(date), "MMM d"), balance: Math.round(balance) };
     });
-    return points;
-  }, [trades]);
+  }, [trades, selectedManual]);
 
   const monthlyProfitData = useMemo(() => {
     const map: Record<string, number> = {};
@@ -120,14 +145,18 @@ export default function Dashboard() {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome, {displayName} 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">Here's your trading overview.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            {accountTitle ? `${accountTitle}` : `Welcome, ${displayName} 👋`}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {accountTitle ? `${selectedManual?.broker_name ? selectedManual.broker_name + " · " : ""}${selectedManual?.account_currency} · ${selectedManual?.account_type}` : "Here's your trading overview."}
+          </p>
         </div>
-        <AccountSelector selectedAccountId={selectedAccountId} onSelectAccount={setSelectedAccountId} />
+        <AccountSelector selectedAccount={selectedAccount} onSelectAccount={setSelectedAccount} />
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard title={liveBalance !== null ? "Account Balance" : "Net P/L"} value={`$${accountEquity.toLocaleString()}`} icon={DollarSign} change={liveBalance !== null ? "Live balance" : "Calculated from synced/manual trades"} positive={accountEquity >= 0} delay={0.05} />
+        <StatCard title={balanceLabel} value={`$${accountEquity.toLocaleString()}`} icon={DollarSign} change={balanceSubtext} positive={accountEquity >= 0} delay={0.05} />
         <StatCard title="Today's P/L" value={`$${stats.todayPL}`} icon={TrendingUp} change={`${stats.todayTrades} trades`} positive={stats.todayPL >= 0} delay={0.1} />
         <StatCard title="Total Trades" value={trades.length} icon={BarChart3} delay={0.15} />
         <StatCard title="Win Rate" value={`${stats.winRate}%`} icon={Target} change={`${stats.wins}W / ${stats.losses}L`} positive={stats.winRate >= 50} delay={0.2} />
