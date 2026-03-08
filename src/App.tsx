@@ -56,14 +56,14 @@ function ProtectedRoutes() {
 function AuthRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to="/" replace />;
   return <Auth />;
 }
 
 function LandingRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to="/" replace />;
   return <Landing />;
 }
 
