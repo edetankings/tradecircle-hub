@@ -179,6 +179,56 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_journal: {
+        Row: {
+          content: string
+          created_at: string
+          emotional_state: string | null
+          id: string
+          screenshot_url: string | null
+          tags: string[] | null
+          title: string
+          trade_id: string | null
+          trade_idea: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          emotional_state?: string | null
+          id?: string
+          screenshot_url?: string | null
+          tags?: string[] | null
+          title?: string
+          trade_id?: string | null
+          trade_idea?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          emotional_state?: string | null
+          id?: string
+          screenshot_url?: string | null
+          tags?: string[] | null
+          title?: string
+          trade_id?: string | null
+          trade_idea?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_journal_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           close_time: string | null
