@@ -19,12 +19,17 @@ export type Database = {
           created_at: string
           date: string
           did_well: string | null
+          emotion_after: string | null
+          emotion_before: string | null
           followed_plan: boolean | null
           id: string
           improvement: string | null
+          lesson_learned: string | null
           mistake: string | null
           notes: string | null
           screenshot_url: string | null
+          strategy_used: string | null
+          trade_id: string | null
           updated_at: string
           user_id: string
         }
@@ -32,12 +37,17 @@ export type Database = {
           created_at?: string
           date: string
           did_well?: string | null
+          emotion_after?: string | null
+          emotion_before?: string | null
           followed_plan?: boolean | null
           id?: string
           improvement?: string | null
+          lesson_learned?: string | null
           mistake?: string | null
           notes?: string | null
           screenshot_url?: string | null
+          strategy_used?: string | null
+          trade_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -45,16 +55,29 @@ export type Database = {
           created_at?: string
           date?: string
           did_well?: string | null
+          emotion_after?: string | null
+          emotion_before?: string | null
           followed_plan?: boolean | null
           id?: string
           improvement?: string | null
+          lesson_learned?: string | null
           mistake?: string | null
           notes?: string | null
           screenshot_url?: string | null
+          strategy_used?: string | null
+          trade_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_reflections_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leaderboard_stats: {
         Row: {
@@ -335,6 +358,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          losses: number
+          profit_factor: number
+          total_profit: number
+          total_trades: number
+          user_id: string
+          win_rate: number
+          wins: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
