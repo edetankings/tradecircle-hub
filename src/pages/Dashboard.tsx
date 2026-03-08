@@ -33,11 +33,10 @@ export default function Dashboard() {
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // Filter trades by selected MT account (if any)
+  // Filter trades by selected MT account
   const trades = useMemo(() => {
     if (!selectedAccountId) return allTrades;
-    // Future: filter by account when trades have mt_account_id
-    return allTrades;
+    return allTrades.filter((t: any) => t.mt_account_id === selectedAccountId);
   }, [allTrades, selectedAccountId]);
 
   const today = format(new Date(), "yyyy-MM-dd");
