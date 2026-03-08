@@ -22,20 +22,20 @@ export default function BacktestingGuide() {
     <div className="space-y-6">
       <motion.div {...fade(0)}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Resources</h1>
-        <p className="text-muted-foreground text-sm mt-1">Trading guides, calculators, and strategy education.</p>
+        <p className="text-muted-foreground text-sm mt-1">Trading guides, calculators, and educational resources.</p>
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="guides" className="gap-1.5 text-xs"><GraduationCap className="w-3.5 h-3.5" /> Guides</TabsTrigger>
           <TabsTrigger value="calculators" className="gap-1.5 text-xs"><Calculator className="w-3.5 h-3.5" /> Calculators</TabsTrigger>
-          <TabsTrigger value="strategies" className="gap-1.5 text-xs"><Brain className="w-3.5 h-3.5" /> Strategies</TabsTrigger>
+          <TabsTrigger value="videos" className="gap-1.5 text-xs"><Rocket className="w-3.5 h-3.5" /> Videos</TabsTrigger>
           <TabsTrigger value="psychology" className="gap-1.5 text-xs"><Lightbulb className="w-3.5 h-3.5" /> Psychology</TabsTrigger>
         </TabsList>
 
         <TabsContent value="guides" className="mt-4"><GuidesSection /></TabsContent>
         <TabsContent value="calculators" className="mt-4"><CalculatorsSection /></TabsContent>
-        <TabsContent value="strategies" className="mt-4"><StrategiesSection /></TabsContent>
+        <TabsContent value="videos" className="mt-4"><VideosSection /></TabsContent>
         <TabsContent value="psychology" className="mt-4"><PsychologySection /></TabsContent>
       </Tabs>
     </div>
@@ -294,92 +294,73 @@ function CalculatorsSection() {
   );
 }
 
-function StrategiesSection() {
-  const strategies = [
+function VideosSection() {
+  const videos = [
     {
-      name: "Breakout Trading",
-      difficulty: "Beginner",
-      description: "Trade when price breaks through key support/resistance levels with increased volume.",
-      rules: ["Identify consolidation zones", "Wait for candle close above/below level", "Enter with confirmation candle", "SL below breakout level"],
-      pairs: ["EURUSD", "GBPUSD", "USDJPY"],
-      timeframes: ["H1", "H4", "D1"],
+      title: "How to Read Candlestick Charts",
+      description: "Learn the basics of reading candlestick patterns and what they reveal about market sentiment and price direction.",
+      duration: "15 min", level: "Beginner", category: "Price Action",
     },
     {
-      name: "Supply & Demand",
-      difficulty: "Intermediate",
-      description: "Identify institutional order blocks where major buying/selling occurred and trade reactions from those zones.",
-      rules: ["Mark fresh supply/demand zones from strong moves", "Wait for price to return to the zone", "Enter with a rejection candle", "Target the opposing zone"],
-      pairs: ["EURUSD", "GBPJPY", "XAUUSD"],
-      timeframes: ["H4", "D1"],
+      title: "Risk Management Masterclass",
+      description: "A deep dive into position sizing, stop loss placement, and how to protect your capital during volatile markets.",
+      duration: "25 min", level: "Beginner", category: "Risk Management",
     },
     {
-      name: "ICT Concepts",
-      difficulty: "Advanced",
-      description: "Inner Circle Trader methodology focusing on liquidity, order blocks, fair value gaps, and smart money concepts.",
-      rules: ["Identify liquidity pools above/below highs and lows", "Wait for liquidity sweep", "Enter at order block with FVG confluence", "Target opposing liquidity"],
-      pairs: ["EURUSD", "GBPUSD", "NAS100"],
-      timeframes: ["M15", "H1", "H4"],
+      title: "Building a Trading Journal",
+      description: "Step-by-step guide to creating a trading journal that helps you identify patterns in your performance and psychology.",
+      duration: "20 min", level: "Beginner", category: "Education",
     },
     {
-      name: "Moving Average Crossover",
-      difficulty: "Beginner",
-      description: "Use two moving averages (fast and slow) to identify trend changes and momentum shifts.",
-      rules: ["Use 20 EMA and 50 EMA", "Buy when fast crosses above slow", "Sell when fast crosses below slow", "Use ATR for stop loss distance"],
-      pairs: ["Any major pair"],
-      timeframes: ["H1", "H4", "D1"],
+      title: "Understanding Market Structure",
+      description: "Master higher highs, higher lows, break of structure, and change of character to identify trend direction.",
+      duration: "30 min", level: "Intermediate", category: "Price Action",
+    },
+    {
+      title: "Trading Psychology: Handling Losses",
+      description: "Practical techniques for managing emotions after losing trades and maintaining discipline during drawdowns.",
+      duration: "18 min", level: "All Levels", category: "Psychology",
+    },
+    {
+      title: "Backtesting Your Strategy Properly",
+      description: "How to backtest a strategy with historical data, avoid curve-fitting, and validate edge before going live.",
+      duration: "22 min", level: "Intermediate", category: "Education",
     },
   ];
 
-  const difficultyColor = (d: string) => {
-    if (d === "Beginner") return "text-profit bg-profit/10";
-    if (d === "Intermediate") return "text-yellow-400 bg-yellow-500/10";
-    return "text-loss bg-loss/10";
+  const levelColor = (l: string) => {
+    if (l === "Beginner") return "text-profit bg-profit/10";
+    if (l === "Intermediate") return "text-yellow-400 bg-yellow-500/10";
+    return "text-primary bg-primary/10";
   };
 
   return (
     <div className="space-y-4">
-      {strategies.map((strat, i) => (
-        <motion.div key={strat.name} {...fade(0.05 + i * 0.05)} className="glass-card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-foreground">{strat.name}</h3>
-            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold ${difficultyColor(strat.difficulty)}`}>
-              {strat.difficulty}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">{strat.description}</p>
+      <motion.div {...fade(0)} className="glass-card p-5 border-l-4 border-primary">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Video tutorials</span> covering essential trading concepts from beginner to advanced levels. Study these to strengthen your foundation.
+        </p>
+      </motion.div>
 
-          <div>
-            <p className="text-xs font-medium text-foreground mb-2">Trading Rules:</p>
-            <div className="space-y-1.5">
-              {strat.rules.map((rule, j) => (
-                <div key={j} className="flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{j + 1}</span>
-                  <p className="text-xs text-muted-foreground">{rule}</p>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {videos.map((video, i) => (
+          <motion.div key={video.title} {...fade(0.05 + i * 0.04)} className="glass-card p-5 space-y-3 hover:border-primary/20 transition-all">
+            <div className="flex items-center justify-between">
+              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${levelColor(video.level)}`}>{video.level}</span>
+              <span className="text-[10px] text-muted-foreground">{video.duration}</span>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-            <div>
-              <span className="font-medium text-foreground">Pairs: </span>
-              {strat.pairs.map((p) => (
-                <span key={p} className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] mr-1">{p}</span>
-              ))}
+            <h3 className="text-sm font-semibold text-foreground">{video.title}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{video.description}</p>
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground text-[10px]">{video.category}</span>
+              <Rocket className="w-3.5 h-3.5 text-primary" />
             </div>
-            <div>
-              <span className="font-medium text-foreground">Timeframes: </span>
-              {strat.timeframes.map((tf) => (
-                <span key={tf} className="px-2 py-0.5 rounded bg-secondary text-foreground text-[10px] mr-1">{tf}</span>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
-
 function PsychologySection() {
   const topics = [
     {
