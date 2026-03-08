@@ -195,6 +195,9 @@ export default function Dashboard() {
         <AccountSelector selectedAccount={selectedAccount} onSelectAccount={setSelectedAccount} />
       </motion.div>
 
+      {/* Trading Plan */}
+      <TradingPlanWidget />
+
       {/* Stat Cards - 8 widgets */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
         <StatCard title="Balance" value={`$${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} positive={accountBalance >= 0} delay={0.03} />
