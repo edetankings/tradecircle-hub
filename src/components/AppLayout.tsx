@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield,
+  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield, Newspaper, Brain, FlaskConical,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,11 @@ const navItems = [
   { path: "/analytics", label: "Analytics", icon: BarChart3 },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/reflections", label: "Reflections", icon: PenLine },
+  { path: "/news", label: "Trading News", icon: Newspaper },
+  { path: "/strategy-journal", label: "Strategy Journal", icon: Brain },
+  { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
   { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
-  { path: "/backtesting-guide", label: "Backtesting Guide", icon: GraduationCap },
+  { path: "/backtesting-guide", label: "Resources", icon: GraduationCap },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
