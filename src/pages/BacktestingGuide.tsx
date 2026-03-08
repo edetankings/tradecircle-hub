@@ -22,20 +22,20 @@ export default function BacktestingGuide() {
     <div className="space-y-6">
       <motion.div {...fade(0)}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Resources</h1>
-        <p className="text-muted-foreground text-sm mt-1">Trading guides, calculators, and strategy education.</p>
+        <p className="text-muted-foreground text-sm mt-1">Trading guides, calculators, and educational resources.</p>
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="guides" className="gap-1.5 text-xs"><GraduationCap className="w-3.5 h-3.5" /> Guides</TabsTrigger>
           <TabsTrigger value="calculators" className="gap-1.5 text-xs"><Calculator className="w-3.5 h-3.5" /> Calculators</TabsTrigger>
-          <TabsTrigger value="strategies" className="gap-1.5 text-xs"><Brain className="w-3.5 h-3.5" /> Strategies</TabsTrigger>
+          <TabsTrigger value="videos" className="gap-1.5 text-xs"><Rocket className="w-3.5 h-3.5" /> Videos</TabsTrigger>
           <TabsTrigger value="psychology" className="gap-1.5 text-xs"><Lightbulb className="w-3.5 h-3.5" /> Psychology</TabsTrigger>
         </TabsList>
 
         <TabsContent value="guides" className="mt-4"><GuidesSection /></TabsContent>
         <TabsContent value="calculators" className="mt-4"><CalculatorsSection /></TabsContent>
-        <TabsContent value="strategies" className="mt-4"><StrategiesSection /></TabsContent>
+        <TabsContent value="videos" className="mt-4"><VideosSection /></TabsContent>
         <TabsContent value="psychology" className="mt-4"><PsychologySection /></TabsContent>
       </Tabs>
     </div>
