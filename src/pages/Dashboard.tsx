@@ -7,10 +7,12 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 import StatCard from "@/components/StatCard";
 import { useTrades } from "@/hooks/useTrades";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, subDays, startOfWeek, isAfter } from "date-fns";
+import { format, startOfWeek, isAfter } from "date-fns";
 import AccountSelector from "@/components/AccountSelector";
 
 const COLORS = ["#00C896", "#FF4D4F"];
@@ -33,7 +35,20 @@ export default function Dashboard() {
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // Filter trades by selected MT account
+  const { data: profile } = useQuery({
+    queryKey: ["profile-balance", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("myfxbook_balance,myfxbook_connected")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const trades = useMemo(() => {
     if (!selectedAccountId) return allTrades;
     return allTrades.filter((t: any) => t.mt_account_id === selectedAccountId);
@@ -59,6 +74,11 @@ export default function Dashboard() {
 
     return { wins, losses, totalPL, todayPL, todayTrades: todayTrades.length, winRate, weeklyPL, bestPair };
   }, [trades, today, weekStart]);
+
+  const liveBalance = profile?.myfxbook_connected && profile?.myfxbook_balance != null
+    ? Number(profile.myfxbook_balance)
+    : null;
+  const accountEquity = liveBalance ?? stats.totalPL;
 
   const pieData = [
     { name: "Wins", value: stats.wins },
@@ -107,7 +127,7 @@ export default function Dashboard() {
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard title="Account Balance" value={`$${(10000 + stats.totalPL).toLocaleString()}`} icon={DollarSign} change={`${((stats.totalPL / 10000) * 100).toFixed(1)}% all time`} positive={stats.totalPL >= 0} delay={0.05} />
+        <StatCard title={liveBalance !== null ? "Account Balance" : "Net P/L"} value={`$${accountEquity.toLocaleString()}`} icon={DollarSign} change={liveBalance !== null ? "Live balance" : "Calculated from synced/manual trades"} positive={accountEquity >= 0} delay={0.05} />
         <StatCard title="Today's P/L" value={`$${stats.todayPL}`} icon={TrendingUp} change={`${stats.todayTrades} trades`} positive={stats.todayPL >= 0} delay={0.1} />
         <StatCard title="Total Trades" value={trades.length} icon={BarChart3} delay={0.15} />
         <StatCard title="Win Rate" value={`${stats.winRate}%`} icon={Target} change={`${stats.wins}W / ${stats.losses}L`} positive={stats.winRate >= 50} delay={0.2} />
