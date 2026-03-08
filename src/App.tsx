@@ -17,6 +17,9 @@ import ConnectAccount from "@/pages/ConnectAccount";
 import BacktestingGuide from "@/pages/BacktestingGuide";
 import AdminPanel from "@/pages/AdminPanel";
 import Landing from "@/pages/Landing";
+import TradingNews from "@/pages/TradingNews";
+import StrategyJournal from "@/pages/StrategyJournal";
+import Backtesting from "@/pages/Backtesting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
