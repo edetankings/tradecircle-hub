@@ -85,6 +85,7 @@ export type Database = {
       }
       mt_accounts: {
         Row: {
+          account_label: string
           account_number: string
           broker_name: string
           created_at: string
@@ -98,6 +99,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_label?: string
           account_number: string
           broker_name: string
           created_at?: string
@@ -111,6 +113,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_label?: string
           account_number?: string
           broker_name?: string
           created_at?: string
@@ -185,6 +188,7 @@ export type Database = {
           exit_price: number
           id: string
           lot_size: number
+          mt_account_id: string | null
           myfxbook_trade_id: string | null
           notes: string
           open_time: string | null
@@ -195,6 +199,7 @@ export type Database = {
           stop_loss: number
           strategy: string
           take_profit: number
+          ticket: string | null
           type: string
           updated_at: string
           user_id: string
@@ -207,6 +212,7 @@ export type Database = {
           exit_price: number
           id?: string
           lot_size: number
+          mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
           open_time?: string | null
@@ -217,6 +223,7 @@ export type Database = {
           stop_loss: number
           strategy?: string
           take_profit: number
+          ticket?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -229,6 +236,7 @@ export type Database = {
           exit_price?: number
           id?: string
           lot_size?: number
+          mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
           open_time?: string | null
@@ -239,11 +247,20 @@ export type Database = {
           stop_loss?: number
           strategy?: string
           take_profit?: number
+          ticket?: string | null
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trades_mt_account_id_fkey"
+            columns: ["mt_account_id"]
+            isOneToOne: false
+            referencedRelation: "mt_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
