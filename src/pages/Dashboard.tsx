@@ -127,7 +127,7 @@ export default function Dashboard() {
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard title="Account Balance" value={`$${(10000 + stats.totalPL).toLocaleString()}`} icon={DollarSign} change={`${((stats.totalPL / 10000) * 100).toFixed(1)}% all time`} positive={stats.totalPL >= 0} delay={0.05} />
+        <StatCard title={liveBalance !== null ? "Account Balance" : "Net P/L"} value={`$${accountEquity.toLocaleString()}`} icon={DollarSign} change={liveBalance !== null ? "Live balance" : "Calculated from synced/manual trades"} positive={accountEquity >= 0} delay={0.05} />
         <StatCard title="Today's P/L" value={`$${stats.todayPL}`} icon={TrendingUp} change={`${stats.todayTrades} trades`} positive={stats.todayPL >= 0} delay={0.1} />
         <StatCard title="Total Trades" value={trades.length} icon={BarChart3} delay={0.15} />
         <StatCard title="Win Rate" value={`${stats.winRate}%`} icon={Target} change={`${stats.wins}W / ${stats.losses}L`} positive={stats.winRate >= 50} delay={0.2} />
