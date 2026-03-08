@@ -54,7 +54,7 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6">
+      <section className="relative pt-36 md:pt-40 pb-24 px-6">
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
