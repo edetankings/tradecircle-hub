@@ -99,12 +99,23 @@ export function useMTAccounts() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      const failedResults = (data?.results ?? []).filter((r: any) => !!r?.error);
+      if ((data?.total_synced ?? 0) === 0 && failedResults.length > 0) {
+        throw new Error(failedResults[0].error);
+      }
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["mt-accounts"] });
       queryClient.invalidateQueries({ queryKey: ["trades"] });
-      toast.success(`Synced ${data.total_synced} new trades!`);
+
+      if ((data?.total_synced ?? 0) > 0) {
+        toast.success(`Synced ${data.total_synced} new trades!`);
+      } else {
+        toast.info("Sync completed. No new trades found.");
+      }
     },
     onError: (error: any) => {
       toast.error(error.message || "Sync failed. Check your account credentials.");
