@@ -31,13 +31,41 @@ const toTradeType = (value: unknown): "Buy" | "Sell" => {
 };
 
 const getAccountId = (account: any): string =>
-  String(
-    account?.id ??
-      account?.accountId ??
-      account?.account_id ??
-      account?.accountid ??
-      ""
-  ).trim();
+  String(account?.id ?? account?.accountId ?? account?.account_id ?? account?.accountid ?? "").trim();
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const chunk = <T>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+};
+
+async function fetchJsonWithRetry(url: URL, retries = 3) {
+  let lastError = "External API request failed";
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(url.toString());
+
+    if (response.ok) {
+      return await response.json();
+    }
+
+    const retryAfter = Number(response.headers.get("retry-after") ?? 0);
+    const bodyText = await response.text();
+    lastError = bodyText || `HTTP ${response.status}`;
+
+    if (attempt < retries && (response.status === 429 || response.status >= 500)) {
+      const waitMs = retryAfter > 0 ? retryAfter * 1000 : 400 + attempt * 400;
+      await sleep(waitMs);
+      continue;
+    }
+
+    throw new Error(lastError);
+  }
+
+  throw new Error(lastError);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -55,10 +83,10 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const anonClient = createClient(supabaseUrl, publishableKey);
+    const anonClient = createClient(supabaseUrl, anonKey);
 
     const {
       data: { user },
@@ -78,19 +106,29 @@ Deno.serve(async (req) => {
       return json({ error: "Email and password are required." }, 400);
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("last_synced_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const lastSyncedAt = profile?.last_synced_at ? new Date(profile.last_synced_at) : null;
+
     // 1) Login
     const loginUrl = new URL("https://www.myfxbook.com/api/login.json");
     loginUrl.searchParams.set("email", email);
     loginUrl.searchParams.set("password", password);
 
-    const loginRes = await fetch(loginUrl);
-    if (!loginRes.ok) {
-      return json({ error: "Myfxbook API is currently unavailable. Please try again." }, 503);
-    }
-
-    const loginData = await loginRes.json();
+    const loginData = await fetchJsonWithRetry(loginUrl, 2);
     if (loginData?.error || !loginData?.session) {
-      return json({ error: "Myfxbook login failed. Please check your email and password." }, 400);
+      return json(
+        {
+          error:
+            String(loginData?.message || loginData?.error || "").trim() ||
+            "Myfxbook login failed. Please check your email and password.",
+        },
+        400
+      );
     }
 
     myfxSession = String(loginData.session);
@@ -99,17 +137,16 @@ Deno.serve(async (req) => {
     const accountsUrl = new URL("https://www.myfxbook.com/api/get-my-accounts.json");
     accountsUrl.searchParams.set("session", myfxSession);
 
-    const accountsRes = await fetch(accountsUrl);
-    if (!accountsRes.ok) {
-      return json({ error: "Myfxbook API is currently unavailable. Please try again." }, 503);
-    }
-
-    const accountsData = await accountsRes.json();
+    const accountsData = await fetchJsonWithRetry(accountsUrl, 2);
     const accounts = Array.isArray(accountsData?.accounts) ? accountsData.accounts : [];
 
     if (accountsData?.error || accounts.length === 0) {
       return json(
-        { error: "Myfxbook account found but no trading accounts are connected." },
+        {
+          error:
+            String(accountsData?.message || accountsData?.error || "").trim() ||
+            "Myfxbook account found but no trading accounts are connected.",
+        },
         400
       );
     }
@@ -132,21 +169,19 @@ Deno.serve(async (req) => {
     historyUrl.searchParams.set("session", myfxSession);
     historyUrl.searchParams.set("id", selectedAccountId);
 
-    const historyRes = await fetch(historyUrl);
-    if (!historyRes.ok) {
-      return json({ error: "Myfxbook API is currently unavailable. Please try again." }, 503);
-    }
-
-    const historyData = await historyRes.json();
-    const history = Array.isArray(historyData?.history) ? historyData.history : [];
-
+    const historyData = await fetchJsonWithRetry(historyUrl, 2);
     if (historyData?.error) {
-      return json({ error: "Invalid account ID. Please check and try again." }, 400);
+      return json(
+        {
+          error:
+            String(historyData?.message || historyData?.error || "").trim() ||
+            "Unable to fetch Myfxbook trade history.",
+        },
+        400
+      );
     }
 
-    if (history.length === 0) {
-      return json({ error: "No closed trades were found on this Myfxbook account." }, 400);
-    }
+    const history = Array.isArray(historyData?.history) ? historyData.history : [];
 
     const mappedTrades = history
       .map((trade: any) => {
@@ -157,12 +192,14 @@ Deno.serve(async (req) => {
         if (!pair) return null;
         if (!openTime && !closeTime) return null;
 
-        const myfxbookTradeId = String(
-          trade.tradeId ?? trade.ticket ?? trade.order ?? trade.id ?? ""
-        ).trim();
-
+        const myfxbookTradeId = String(trade.tradeId ?? trade.ticket ?? trade.order ?? trade.id ?? "").trim();
         const dateIso = closeTime ?? openTime;
         if (!dateIso) return null;
+
+        const tradeDate = new Date(dateIso);
+        if (lastSyncedAt && !Number.isNaN(tradeDate.getTime()) && tradeDate <= lastSyncedAt) {
+          return null;
+        }
 
         return {
           user_id: user.id,
@@ -185,75 +222,83 @@ Deno.serve(async (req) => {
       })
       .filter(Boolean) as Array<Record<string, any>>;
 
-    if (mappedTrades.length === 0) {
-      return json({ error: "No closed trades were found on this Myfxbook account." }, 400);
+    const withTradeId = mappedTrades.filter((trade) => !!trade.myfxbook_trade_id);
+    const withoutTradeId = mappedTrades.filter((trade) => !trade.myfxbook_trade_id);
+
+    const existingByTradeId = new Map<string, string>();
+
+    const incomingIds = Array.from(new Set(withTradeId.map((trade) => String(trade.myfxbook_trade_id))));
+    for (const idBatch of chunk(incomingIds, 200)) {
+      const { data: existing, error: existingError } = await supabase
+        .from("trades")
+        .select("id,myfxbook_trade_id")
+        .eq("user_id", user.id)
+        .eq("source", "myfxbook")
+        .in("myfxbook_trade_id", idBatch);
+
+      if (existingError) {
+        return json({ error: "Failed to sync trades to database." }, 500);
+      }
+
+      for (const row of existing ?? []) {
+        const tradeId = String(row.myfxbook_trade_id ?? "").trim();
+        if (tradeId) existingByTradeId.set(tradeId, row.id);
+      }
     }
 
-    // 4) Deduplicate + create/update
-    const { data: existingTrades, error: existingError } = await supabase
-      .from("trades")
-      .select("id,myfxbook_trade_id,pair,open_time")
-      .eq("user_id", user.id)
-      .eq("source", "myfxbook");
+    const existingFallback = new Map<string, string>();
+    const fallbackTimes = Array.from(new Set(withoutTradeId.map((trade) => trade.open_time).filter(Boolean)));
 
-    if (existingError) {
-      console.error("Failed to read existing trades", existingError);
-      return json({ error: "Failed to sync trades to database." }, 500);
-    }
+    for (const timeBatch of chunk(fallbackTimes, 200)) {
+      const { data: existing, error: existingError } = await supabase
+        .from("trades")
+        .select("id,pair,open_time")
+        .eq("user_id", user.id)
+        .eq("source", "myfxbook")
+        .in("open_time", timeBatch as string[]);
 
-    const byTradeId = new Map<string, string>();
-    const byPairOpenTime = new Map<string, string>();
+      if (existingError) {
+        return json({ error: "Failed to sync trades to database." }, 500);
+      }
 
-    for (const existing of existingTrades ?? []) {
-      const existingTradeId = String(existing.myfxbook_trade_id ?? "").trim();
-      if (existingTradeId) byTradeId.set(existingTradeId, existing.id);
-
-      const openIso = existing.open_time ? new Date(existing.open_time).toISOString() : "";
-      const fallbackKey = `${String(existing.pair ?? "").trim()}|${openIso}`;
-      if (fallbackKey !== "|") byPairOpenTime.set(fallbackKey, existing.id);
+      for (const row of existing ?? []) {
+        const key = `${String(row.pair ?? "").trim()}|${row.open_time ?? ""}`;
+        if (key !== "|") existingFallback.set(key, row.id);
+      }
     }
 
     const updates: Array<Record<string, any>> = [];
     const inserts: Array<Record<string, any>> = [];
-    const processedIds = new Set<string>();
-    const processedFallbacks = new Set<string>();
 
     for (const trade of mappedTrades) {
       const tradeId = String(trade.myfxbook_trade_id ?? "").trim();
       const fallbackKey = `${trade.pair}|${trade.open_time ?? ""}`;
+      const existingId = tradeId ? existingByTradeId.get(tradeId) : existingFallback.get(fallbackKey);
 
-      if (tradeId && processedIds.has(tradeId)) continue;
-      if (!tradeId && processedFallbacks.has(fallbackKey)) continue;
-
-      const existingId =
-        (tradeId ? byTradeId.get(tradeId) : undefined) ?? byPairOpenTime.get(fallbackKey);
-
-      if (existingId) {
-        updates.push({ id: existingId, ...trade });
-      } else {
-        inserts.push(trade);
-      }
-
-      if (tradeId) processedIds.add(tradeId);
-      else processedFallbacks.add(fallbackKey);
+      if (existingId) updates.push({ id: existingId, ...trade });
+      else inserts.push(trade);
     }
 
-    if (updates.length > 0) {
-      const { error: updateError } = await supabase
-        .from("trades")
-        .upsert(updates, { onConflict: "id" });
-      if (updateError) {
-        console.error("Trade update error", updateError);
+    let updatedCount = 0;
+    for (const updateBatch of chunk(updates, 200)) {
+      if (!updateBatch.length) continue;
+      const { error } = await supabase.from("trades").upsert(updateBatch, { onConflict: "id" });
+      if (error) {
         return json({ error: "Failed to sync trades to database." }, 500);
       }
+      updatedCount += updateBatch.length;
+      await sleep(150);
     }
 
-    if (inserts.length > 0) {
-      const { error: insertError } = await supabase.from("trades").insert(inserts);
-      if (insertError) {
-        console.error("Trade insert error", insertError);
+    let insertedCount = 0;
+    for (const insertBatch of chunk(inserts, 200)) {
+      if (!insertBatch.length) continue;
+      const { error } = await supabase.from("trades").insert(insertBatch);
+      if (error) {
         return json({ error: "Failed to sync trades to database." }, 500);
       }
+      insertedCount += insertBatch.length;
+      await sleep(150);
     }
 
     const syncedAt = new Date().toISOString();
@@ -263,9 +308,8 @@ Deno.serve(async (req) => {
       .update({
         myfxbook_username: email,
         myfxbook_account_id: selectedAccountId,
-        myfxbook_account_name: String(
-          selectedAccount?.name ?? selectedAccount?.accountName ?? selectedAccount?.description ?? ""
-        ) || null,
+        myfxbook_account_name:
+          String(selectedAccount?.name ?? selectedAccount?.accountName ?? selectedAccount?.description ?? "") || null,
         myfxbook_broker: String(selectedAccount?.broker ?? "") || null,
         myfxbook_gain: toNumber(selectedAccount?.gain, 0),
         myfxbook_balance: toNumber(selectedAccount?.balance, 0),
@@ -276,9 +320,9 @@ Deno.serve(async (req) => {
 
     return json({
       success: true,
-      tradesCount: inserts.length + updates.length,
-      insertedCount: inserts.length,
-      updatedCount: updates.length,
+      tradesCount: insertedCount + updatedCount,
+      insertedCount,
+      updatedCount,
       lastSynced: syncedAt,
       account: {
         account_id: selectedAccountId,
@@ -289,17 +333,24 @@ Deno.serve(async (req) => {
         balance: toNumber(selectedAccount?.balance, 0),
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Myfxbook sync error:", err);
-    return json({ error: "An unexpected error occurred while syncing Myfxbook trades." }, 500);
+    return json(
+      {
+        error:
+          String(err?.message || "").trim() ||
+          "An unexpected error occurred while syncing Myfxbook trades.",
+      },
+      500
+    );
   } finally {
     if (myfxSession) {
       try {
         const logoutUrl = new URL("https://www.myfxbook.com/api/logout.json");
         logoutUrl.searchParams.set("session", myfxSession);
         await fetch(logoutUrl);
-      } catch (logoutError) {
-        console.error("Myfxbook logout warning:", logoutError);
+      } catch (_logoutError) {
+        // No-op
       }
     }
   }
