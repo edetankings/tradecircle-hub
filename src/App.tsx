@@ -25,6 +25,7 @@ import Backtesting from "@/pages/Backtesting";
 import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
+import GettingStarted from "@/pages/GettingStarted";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
