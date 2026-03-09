@@ -26,6 +26,7 @@ import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import GettingStarted from "@/pages/GettingStarted";
+import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ function ProtectedRoutes() {
         <Route path="/backtesting" element={<Backtesting />} />
         <Route path="/trading-plan" element={<TradingPlan />} />
         <Route path="/getting-started" element={<GettingStarted />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
