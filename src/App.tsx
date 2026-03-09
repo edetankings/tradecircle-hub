@@ -61,6 +61,7 @@ function ProtectedRoutes() {
         <Route path="/backtesting" element={<Backtesting />} />
         <Route path="/trading-plan" element={<TradingPlan />} />
         <Route path="/getting-started" element={<GettingStarted />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
