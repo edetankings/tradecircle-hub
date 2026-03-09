@@ -66,13 +66,6 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {/* All Accounts */}
-            <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => onSelectAccount(null)}>
-              <Monitor className="w-4 h-4" />
-              <span className="flex-1">All Accounts</span>
-              {!selectedAccount && <Check className="w-4 h-4 text-primary" />}
-            </DropdownMenuItem>
-
             {isLoading && (
               <DropdownMenuItem disabled className="text-muted-foreground text-xs">Loading accounts…</DropdownMenuItem>
             )}
