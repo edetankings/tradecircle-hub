@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield, Newspaper, Brain, FlaskConical,
+  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield, Newspaper, Brain, FlaskConical, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ const navItems = [
   { path: "/news", label: "Trading News", icon: Newspaper },
   { path: "/strategy-journal", label: "Strategy Journal", icon: Brain },
   { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
+  { path: "/trading-plan", label: "Trading Plan", icon: ClipboardList },
   { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
   { path: "/backtesting-guide", label: "Resources", icon: GraduationCap },
 ];

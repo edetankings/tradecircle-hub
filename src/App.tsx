@@ -21,6 +21,7 @@ import Landing from "@/pages/Landing";
 import TradingNews from "@/pages/TradingNews";
 import StrategyJournal from "@/pages/StrategyJournal";
 import Backtesting from "@/pages/Backtesting";
+import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -55,6 +56,7 @@ function ProtectedRoutes() {
         <Route path="/news" element={<TradingNews />} />
         <Route path="/strategy-journal" element={<StrategyJournal />} />
         <Route path="/backtesting" element={<Backtesting />} />
+        <Route path="/trading-plan" element={<TradingPlan />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
