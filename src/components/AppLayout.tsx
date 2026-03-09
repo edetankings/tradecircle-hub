@@ -49,10 +49,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 px-3 space-y-1 mt-2">
           {allNavItems.map((item) => {
             const active = location.pathname === item.path;
+            const tourAttr = 
+              item.path === "/add-trade" ? "add-trade" :
+              item.path === "/reflections" ? "reflections" : 
+              item.path === "/trading-plan" ? "trading-plan" : undefined;
+            
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                data-tour={tourAttr}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   active
                     ? "bg-primary/10 text-primary"
