@@ -21,6 +21,7 @@ import Landing from "@/pages/Landing";
 import TradingNews from "@/pages/TradingNews";
 import StrategyJournal from "@/pages/StrategyJournal";
 import Backtesting from "@/pages/Backtesting";
+import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
