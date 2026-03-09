@@ -100,7 +100,6 @@ export default function Landing() {
             <span className="text-base sm:text-lg font-bold tracking-tight">TradeCircle</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-muted-foreground">
-            <a href="#dashboard" className="hover:text-foreground transition-colors duration-200">Dashboard</a>
             <a href="#features" className="hover:text-foreground transition-colors duration-200">Features</a>
             <a href="#how-it-works" className="hover:text-foreground transition-colors duration-200">How It Works</a>
             <a href="#testimonials" className="hover:text-foreground transition-colors duration-200">Reviews</a>
