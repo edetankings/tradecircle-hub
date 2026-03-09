@@ -30,14 +30,14 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
   const isLoading = mtLoading || manualLoading;
 
   // Determine label
-  let label = "All Accounts";
+  let label = "Select Account";
   if (selectedAccount) {
     if (selectedAccount.type === "mt") {
       const acc = mtAccounts.find((a) => a.id === selectedAccount.id);
-      label = acc ? `${acc.account_label} — ${acc.broker_name}` : "All Accounts";
+      label = acc ? `${acc.account_label} — ${acc.broker_name}` : "Select Account";
     } else {
       const acc = manualAccounts.find((a) => a.id === selectedAccount.id);
-      label = acc ? `${acc.account_name}` : "All Accounts";
+      label = acc ? `${acc.account_name}` : "Select Account";
     }
   }
 
