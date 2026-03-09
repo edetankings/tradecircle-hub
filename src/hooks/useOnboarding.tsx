@@ -66,7 +66,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const handleJoyrideCallback = useCallback(async (data: CallBackProps) => {
     const { status } = data;
     
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status) && user) {
+    if ((status === STATUS.FINISHED || status === STATUS.SKIPPED) && user) {
       setRunTour(false);
       await supabase
         .from("profiles")

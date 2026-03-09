@@ -78,7 +78,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-3 mx-3 mb-4 space-y-3">
-          <ActiveAccountSelector />
+          <div data-tour="account-selector">
+            <ActiveAccountSelector />
+          </div>
           <div className="flex items-center justify-between glass-card p-3">
             <p className="text-xs text-muted-foreground truncate flex-1">{user?.email}</p>
             <ThemeToggle />
