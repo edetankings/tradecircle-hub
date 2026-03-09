@@ -10,7 +10,6 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import StatCard from "@/components/StatCard";
-import TradingPlanWidget from "@/components/TradingPlanWidget";
 import { useTrades } from "@/hooks/useTrades";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
