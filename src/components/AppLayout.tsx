@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, Link2, LogOut, GraduationCap, Shield, Newspaper, Brain, FlaskConical, ClipboardList, Settings,
+  Menu, X, TrendingUp, LogOut, GraduationCap, Shield, Newspaper, FlaskConical, Settings, Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,9 @@ const navItems = [
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/reflections", label: "Reflections", icon: PenLine },
   { path: "/news", label: "Trading News", icon: Newspaper },
-  { path: "/strategy-journal", label: "Strategy Journal", icon: Brain },
+  { path: "/market-review", label: "Market Review", icon: Eye },
   { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
-  { path: "/trading-plan", label: "Trading Plan", icon: ClipboardList },
-  { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
   { path: "/getting-started", label: "Getting Started", icon: GraduationCap },
-  { path: "/backtesting-guide", label: "Resources", icon: GraduationCap },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -53,7 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             const tourAttr = 
               item.path === "/add-trade" ? "add-trade" :
               item.path === "/reflections" ? "reflections" : 
-              item.path === "/trading-plan" ? "trading-plan" : undefined;
+              item.path === "/market-review" ? "market-review" : undefined;
             
             return (
               <Link

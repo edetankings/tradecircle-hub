@@ -20,9 +20,8 @@ import BacktestingGuide from "@/pages/BacktestingGuide";
 import AdminPanel from "@/pages/AdminPanel";
 import Landing from "@/pages/Landing";
 import TradingNews from "@/pages/TradingNews";
-import StrategyJournal from "@/pages/StrategyJournal";
+import MarketReview from "@/pages/MarketReview";
 import Backtesting from "@/pages/Backtesting";
-import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import GettingStarted from "@/pages/GettingStarted";
@@ -57,9 +56,8 @@ function ProtectedRoutes() {
         <Route path="/connect" element={<ConnectAccount />} />
         <Route path="/backtesting-guide" element={<BacktestingGuide />} />
         <Route path="/news" element={<TradingNews />} />
-        <Route path="/strategy-journal" element={<StrategyJournal />} />
+        <Route path="/market-review" element={<MarketReview />} />
         <Route path="/backtesting" element={<Backtesting />} />
-        <Route path="/trading-plan" element={<TradingPlan />} />
         <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin" element={<AdminPanel />} />

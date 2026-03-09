@@ -20,6 +20,7 @@ export interface TradeRow {
   source: string;
   user_id: string;
   created_at: string;
+  num_positions: number;
 }
 
 export function useTrades() {
@@ -70,6 +71,7 @@ export function useAddTrade() {
       notes: string;
       mt_account_id?: string;
       manual_account_id?: string;
+      num_positions?: number;
     }) => {
       if (!user) throw new Error("Not authenticated");
       const { mt_account_id, manual_account_id, ...rest } = trade;
@@ -78,6 +80,7 @@ export function useAddTrade() {
         .insert({
           ...rest,
           user_id: user.id,
+          num_positions: trade.num_positions || 1,
           ...(mt_account_id ? { mt_account_id } : {}),
           ...(manual_account_id ? { manual_account_id } : {}),
         } as any)

@@ -148,6 +148,45 @@ export type Database = {
         }
         Relationships: []
       }
+      market_reviews: {
+        Row: {
+          created_at: string
+          entry_idea: string
+          id: string
+          key_levels: string
+          notes: string
+          outlook: string
+          pair: string
+          setup_result: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_idea?: string
+          id?: string
+          key_levels?: string
+          notes?: string
+          outlook?: string
+          pair?: string
+          setup_result?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_idea?: string
+          id?: string
+          key_levels?: string
+          notes?: string
+          outlook?: string
+          pair?: string
+          setup_result?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mt_accounts: {
         Row: {
           account_label: string
@@ -310,6 +349,7 @@ export type Database = {
           mt_account_id: string | null
           myfxbook_trade_id: string | null
           notes: string
+          num_positions: number
           open_time: string | null
           pair: string
           profit_loss: number
@@ -335,6 +375,7 @@ export type Database = {
           mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
+          num_positions?: number
           open_time?: string | null
           pair: string
           profit_loss: number
@@ -360,6 +401,7 @@ export type Database = {
           mt_account_id?: string | null
           myfxbook_trade_id?: string | null
           notes?: string
+          num_positions?: number
           open_time?: string | null
           pair?: string
           profit_loss?: number

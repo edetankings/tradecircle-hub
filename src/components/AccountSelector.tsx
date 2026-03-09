@@ -4,12 +4,13 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronDown, Monitor, Plus, Trash2, RefreshCw, Loader2, Wallet } from "lucide-react";
+import { Check, ChevronDown, Monitor, Plus, Trash2, RefreshCw, Loader2, Wallet, Link2 } from "lucide-react";
 import { useMTAccounts } from "@/hooks/useMTAccounts";
 import { useManualAccounts } from "@/hooks/useManualAccounts";
 import ConnectMTModal from "@/components/ConnectMTModal";
 import CreateManualAccountModal from "@/components/CreateManualAccountModal";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 export type SelectedAccount = {
   id: string;
@@ -26,6 +27,7 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
   const { accounts: manualAccounts, isLoading: manualLoading, removeAccount: removeManual, canAddMore: canAddManual } = useManualAccounts();
   const [mtModalOpen, setMtModalOpen] = useState(false);
   const [manualModalOpen, setManualModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const isLoading = mtLoading || manualLoading;
 
@@ -164,6 +166,12 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
                 <Wallet className="w-4 h-4" /> Max 5 manual accounts
               </DropdownMenuItem>
             )}
+
+            {/* Myfxbook Sync */}
+            <DropdownMenuItem className="gap-2 cursor-pointer text-primary font-medium" onClick={() => navigate("/connect")}>
+              <Link2 className="w-4 h-4" />
+              Myfxbook Sync
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
