@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveAccount } from "@/hooks/useActiveAccount";
 
 export interface TradeRow {
   id: string;
@@ -23,14 +24,26 @@ export interface TradeRow {
 
 export function useTrades() {
   const { user } = useAuth();
+  const { activeAccount } = useActiveAccount();
 
   return useQuery({
-    queryKey: ["trades", user?.id],
+    queryKey: ["trades", user?.id, activeAccount?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("trades")
         .select("*")
         .order("date", { ascending: false });
+
+      // Filter by active account if one is selected
+      if (activeAccount) {
+        if (activeAccount.type === "mt") {
+          query = query.eq("mt_account_id", activeAccount.id);
+        } else if (activeAccount.type === "manual") {
+          query = query.eq("manual_account_id", activeAccount.id);
+        }
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as TradeRow[];
     },

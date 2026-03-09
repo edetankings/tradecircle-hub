@@ -98,12 +98,39 @@ export function useManualAccounts() {
     onError: () => toast.error("Failed to remove account."),
   });
 
+  const setActiveAccount = useMutation({
+    mutationFn: async (accountId: string) => {
+      // First, deactivate all manual accounts
+      await supabase.from("manual_accounts").update({ is_active: false }).eq("user_id", user!.id);
+      
+      // Deactivate all MT accounts
+      await supabase.from("mt_accounts").update({ is_active: false }).eq("user_id", user!.id);
+
+      // Activate the selected manual account
+      const { error } = await supabase
+        .from("manual_accounts")
+        .update({ is_active: true })
+        .eq("id", accountId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["manual-accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["mt-accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["active-account"] });
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      toast.success("Active account updated!");
+    },
+    onError: () => toast.error("Failed to update active account."),
+  });
+
   return {
     accounts: accountsQuery.data ?? [],
     isLoading: accountsQuery.isLoading,
     addAccount,
     updateAccount,
     removeAccount,
+    setActiveAccount,
     canAddMore: (accountsQuery.data?.length ?? 0) < 5,
   };
 }
