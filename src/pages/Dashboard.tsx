@@ -194,8 +194,6 @@ export default function Dashboard() {
         <AccountSelector selectedAccount={selectedAccount} onSelectAccount={setSelectedAccount} />
       </motion.div>
 
-      {/* Trading Plan */}
-      <TradingPlanWidget />
 
       {/* Stat Cards - 8 widgets */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
