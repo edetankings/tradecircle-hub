@@ -88,15 +88,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ActiveAccountProvider>
-            <Routes>
-              <Route path="/landing" element={<LandingRoute />} />
-              <Route path="/auth" element={<AuthRoute />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-          </ActiveAccountProvider>
+          <OnboardingProvider>
+            <ActiveAccountProvider>
+              <Routes>
+                <Route path="/landing" element={<LandingRoute />} />
+                <Route path="/auth" element={<AuthRoute />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+            </ActiveAccountProvider>
+          </OnboardingProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
