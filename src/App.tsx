@@ -26,6 +26,7 @@ import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import GettingStarted from "@/pages/GettingStarted";
+import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
