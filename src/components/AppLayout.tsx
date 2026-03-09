@@ -25,6 +25,7 @@ const navItems = [
   { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
   { path: "/getting-started", label: "Getting Started", icon: GraduationCap },
   { path: "/backtesting-guide", label: "Resources", icon: GraduationCap },
+  { path: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
