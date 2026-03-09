@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { ActiveAccountSelector } from "@/components/ActiveAccountSelector";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
