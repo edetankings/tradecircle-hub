@@ -196,7 +196,7 @@ export default function Dashboard() {
 
 
       {/* Stat Cards - 8 widgets */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3" data-tour="dashboard-stats">
         <StatCard title="Balance" value={`$${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} positive={accountBalance >= 0} delay={0.03} />
         <StatCard title="Equity" value={`$${accountEquity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={Wallet} positive={accountEquity >= 0} delay={0.06} />
         <StatCard title="Total Trades" value={m.totalTrades} icon={BarChart3} delay={0.09} />

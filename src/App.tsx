@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ActiveAccountProvider } from "@/hooks/useActiveAccount";
+import { OnboardingProvider } from "@/hooks/useOnboarding";
 import AppLayout from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -24,6 +25,7 @@ import Backtesting from "@/pages/Backtesting";
 import TradingPlan from "@/pages/TradingPlan";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
+import GettingStarted from "@/pages/GettingStarted";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +59,7 @@ function ProtectedRoutes() {
         <Route path="/strategy-journal" element={<StrategyJournal />} />
         <Route path="/backtesting" element={<Backtesting />} />
         <Route path="/trading-plan" element={<TradingPlan />} />
+        <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -85,15 +88,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ActiveAccountProvider>
-            <Routes>
-              <Route path="/landing" element={<LandingRoute />} />
-              <Route path="/auth" element={<AuthRoute />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-          </ActiveAccountProvider>
+          <OnboardingProvider>
+            <ActiveAccountProvider>
+              <Routes>
+                <Route path="/landing" element={<LandingRoute />} />
+                <Route path="/auth" element={<AuthRoute />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+            </ActiveAccountProvider>
+          </OnboardingProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

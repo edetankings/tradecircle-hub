@@ -198,6 +198,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string
+          has_completed_onboarding: boolean
           id: string
           last_synced_at: string | null
           myfxbook_account_id: string | null
@@ -214,6 +215,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          has_completed_onboarding?: boolean
           id?: string
           last_synced_at?: string | null
           myfxbook_account_id?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          has_completed_onboarding?: boolean
           id?: string
           last_synced_at?: string | null
           myfxbook_account_id?: string | null
