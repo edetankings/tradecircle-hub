@@ -16,9 +16,10 @@ const strategies = ["Breakout", "Trend Following", "Scalping", "Mean Reversion",
 
 export default function AddTrade() {
   const [form, setForm] = useState({
-    pair: "", type: "Buy" as string, entryPrice: "", exitPrice: "",
+    pair: "", customPair: "", type: "Buy" as string, entryPrice: "", exitPrice: "",
     stopLoss: "", takeProfit: "", lotSize: "", profitLoss: "", date: new Date().toISOString().split("T")[0],
     strategy: "", notes: "", accountId: "", accountType: "" as "" | "mt" | "manual",
+    numPositions: "1",
   });
 
   const addTrade = useAddTrade();
@@ -39,14 +40,15 @@ export default function AddTrade() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.pair || !form.entryPrice || !form.exitPrice) {
+    const finalPair = form.pair === "__other" ? form.customPair : form.pair;
+    if (!finalPair || !form.entryPrice || !form.exitPrice) {
       toast.error("Please fill in required fields.");
       return;
     }
 
     try {
       await addTrade.mutateAsync({
-        pair: form.pair,
+        pair: finalPair,
         type: form.type,
         entry_price: parseFloat(form.entryPrice),
         exit_price: parseFloat(form.exitPrice),
@@ -59,6 +61,7 @@ export default function AddTrade() {
         notes: form.notes,
         mt_account_id: form.accountType === "mt" ? form.accountId : undefined,
         manual_account_id: form.accountType === "manual" ? form.accountId : undefined,
+        num_positions: parseInt(form.numPositions) || 1,
       });
       toast.success("Trade saved!");
       navigate("/journal");
@@ -110,8 +113,13 @@ export default function AddTrade() {
               <SelectTrigger className={fieldClass}><SelectValue placeholder="Select pair" /></SelectTrigger>
               <SelectContent className="bg-card border-border">
                 {pairs.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                <SelectItem value="__other">Other (custom)</SelectItem>
               </SelectContent>
             </Select>
+            {form.pair === "__other" && (
+              <Input placeholder="Enter custom pair (e.g. US30, NAS100)" className={fieldClass}
+                value={form.customPair} onChange={(e) => update("customPair", e.target.value)} />
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">Type</label>
@@ -146,6 +154,10 @@ export default function AddTrade() {
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">Profit / Loss ($)</label>
             <Input type="number" step="any" className={fieldClass} value={form.profitLoss} onChange={(e) => update("profitLoss", e.target.value)} placeholder="0.00" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">Number of Positions</label>
+            <Input type="number" min="1" className={fieldClass} value={form.numPositions} onChange={(e) => update("numPositions", e.target.value)} placeholder="1" />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">Trade Date</label>

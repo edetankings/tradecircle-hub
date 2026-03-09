@@ -26,11 +26,12 @@ export default function TradingCalendar() {
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const tradesByDate = useMemo(() => {
-    const map: Record<string, { count: number; pnl: number }> = {};
+    const map: Record<string, { count: number; pnl: number; positions: number }> = {};
     trades.forEach((t) => {
-      if (!map[t.date]) map[t.date] = { count: 0, pnl: 0 };
+      if (!map[t.date]) map[t.date] = { count: 0, pnl: 0, positions: 0 };
       map[t.date].count++;
       map[t.date].pnl += t.profit_loss;
+      map[t.date].positions += (t as any).num_positions || 1;
     });
     return map;
   }, [trades]);
@@ -81,6 +82,9 @@ export default function TradingCalendar() {
                 {data && (
                   <>
                     <span className="text-[10px] text-muted-foreground mt-0.5">{data.count} trade{data.count > 1 ? "s" : ""}</span>
+                    {data.positions > data.count && (
+                      <span className="text-[9px] text-muted-foreground">{data.positions} pos</span>
+                    )}
                     <span className={`text-[10px] font-semibold ${data.pnl >= 0 ? "text-profit" : "text-loss"}`}>
                       {data.pnl >= 0 ? "+" : ""}${data.pnl}
                     </span>
@@ -116,7 +120,14 @@ export default function TradingCalendar() {
                 {selectedTrades.map((t) => (
                   <div key={t.id} className="bg-secondary/50 rounded-lg p-4 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">{t.pair}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">{t.pair}</span>
+                        {(t as any).num_positions > 1 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                            {(t as any).num_positions} positions
+                          </span>
+                        )}
+                      </div>
                       <span className={`font-semibold ${t.profit_loss >= 0 ? "text-profit" : "text-loss"}`}>
                         {t.profit_loss >= 0 ? "+" : ""}${t.profit_loss}
                       </span>
