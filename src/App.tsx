@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ActiveAccountProvider } from "@/hooks/useActiveAccount";
 import AppLayout from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -82,13 +83,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/landing" element={<LandingRoute />} />
-            <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
+          <ActiveAccountProvider>
+            <Routes>
+              <Route path="/landing" element={<LandingRoute />} />
+              <Route path="/auth" element={<AuthRoute />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+          </ActiveAccountProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

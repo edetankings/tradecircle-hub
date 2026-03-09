@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { ActiveAccountSelector } from "@/components/ActiveAccountSelector";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -69,6 +70,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-3 mx-3 mb-4 space-y-3">
+          <ActiveAccountSelector />
           <div className="flex items-center justify-between glass-card p-3">
             <p className="text-xs text-muted-foreground truncate flex-1">{user?.email}</p>
             <ThemeToggle />
@@ -127,11 +129,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     >
                       <item.icon className="w-5 h-5" />
                       {item.label}
-                    </Link>
+                </Link>
                   );
                 })}
               </div>
-              <div className="pb-6">
+              <div className="pb-6 space-y-3">
+                <ActiveAccountSelector />
                 <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={signOut}>
                   <LogOut className="w-4 h-4 mr-2" /> Sign Out
                 </Button>
