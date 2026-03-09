@@ -30,14 +30,14 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
   const isLoading = mtLoading || manualLoading;
 
   // Determine label
-  let label = "All Accounts";
+  let label = "Select Account";
   if (selectedAccount) {
     if (selectedAccount.type === "mt") {
       const acc = mtAccounts.find((a) => a.id === selectedAccount.id);
-      label = acc ? `${acc.account_label} — ${acc.broker_name}` : "All Accounts";
+      label = acc ? `${acc.account_label} — ${acc.broker_name}` : "Select Account";
     } else {
       const acc = manualAccounts.find((a) => a.id === selectedAccount.id);
-      label = acc ? `${acc.account_name}` : "All Accounts";
+      label = acc ? `${acc.account_name}` : "Select Account";
     }
   }
 
@@ -65,13 +65,6 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
               Trading Accounts ({totalAccounts})
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-
-            {/* All Accounts */}
-            <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => onSelectAccount(null)}>
-              <Monitor className="w-4 h-4" />
-              <span className="flex-1">All Accounts</span>
-              {!selectedAccount && <Check className="w-4 h-4 text-primary" />}
-            </DropdownMenuItem>
 
             {isLoading && (
               <DropdownMenuItem disabled className="text-muted-foreground text-xs">Loading accounts…</DropdownMenuItem>
