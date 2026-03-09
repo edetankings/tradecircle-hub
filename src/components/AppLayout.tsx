@@ -23,6 +23,7 @@ const navItems = [
   { path: "/backtesting", label: "Backtesting", icon: FlaskConical },
   { path: "/trading-plan", label: "Trading Plan", icon: ClipboardList },
   { path: "/connect", label: "Connect Myfxbook", icon: Link2 },
+  { path: "/getting-started", label: "Getting Started", icon: GraduationCap },
   { path: "/backtesting-guide", label: "Resources", icon: GraduationCap },
 ];
 
