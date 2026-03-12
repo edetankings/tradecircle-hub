@@ -17,7 +17,7 @@ import autoTable from "jspdf-autotable";
 export default function Settings() {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const { trades } = useTrades();
+  const { data: trades = [] } = useTrades();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState({
