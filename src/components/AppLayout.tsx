@@ -16,7 +16,6 @@ const navItems = [
   { path: "/journal", label: "Journal", icon: BookOpen },
   { path: "/calendar", label: "Calendar", icon: Calendar },
   { path: "/analytics", label: "Analytics", icon: BarChart3 },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/reflections", label: "Reflections", icon: PenLine },
   { path: "/news", label: "Trading News", icon: Newspaper },
   { path: "/market-review", label: "Market Review", icon: Eye },

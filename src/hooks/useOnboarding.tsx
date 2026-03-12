@@ -18,24 +18,36 @@ const OnboardingContext = createContext<OnboardingContextType>({
 const steps: Step[] = [
   {
     target: '[data-tour="dashboard-stats"]',
-    content: "Welcome! Here you can see your trading performance at a glance - total profit, win rate, and number of trades.",
+    content: "Welcome to TradeCircle! This is your Dashboard — track your overall trading performance, profit, win rate, and more at a glance.",
     disableBeacon: true,
   },
   {
     target: '[data-tour="account-selector"]',
-    content: "Switch between your trading accounts here. You can connect MT4/MT5 accounts or create manual accounts.",
+    content: "Manage your trading accounts here. Connect MT4/MT5, Myfxbook, or create manual accounts to start tracking.",
   },
   {
     target: '[data-tour="add-trade"]',
-    content: "Add new trades manually or sync them from your connected accounts.",
+    content: "Add new trades manually with full details — pair, entry/exit, lot size, and number of positions.",
   },
   {
-    target: '[data-tour="reflections"]',
-    content: "Journal your thoughts and emotions after each trading session to improve your discipline.",
+    target: '[href="/journal"]',
+    content: "Your Trade Journal logs every trade. Review past entries, filter by pair or date, and spot patterns.",
   },
   {
-    target: '[data-tour="trading-plan"]',
-    content: "Create and follow your trading plan to stay consistent and disciplined.",
+    target: '[href="/market-review"]',
+    content: "Market Review lets you analyze upcoming setups, document entry ideas, key levels, and track if setups worked.",
+  },
+  {
+    target: '[href="/backtesting"]',
+    content: "Use Backtesting to test strategies on historical data and access learning resources.",
+  },
+  {
+    target: '[href="/news"]',
+    content: "Stay updated with real-time Trading News and the Economic Calendar for market-moving events.",
+  },
+  {
+    target: '[href="/settings"]',
+    content: "Customize your profile, generate trading statements, and manage your account in Settings.",
   },
 ];
 
@@ -56,7 +68,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
       if (data && !data.has_completed_onboarding) {
         setHasCompletedOnboarding(false);
-        setTimeout(() => setRunTour(true), 1000);
+        setTimeout(() => setRunTour(true), 1500);
       }
     };
 
@@ -89,12 +101,23 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         continuous
         showProgress
         showSkipButton
+        scrollToFirstStep
         callback={handleJoyrideCallback}
         styles={{
           options: {
             primaryColor: "hsl(var(--primary))",
             zIndex: 10000,
           },
+          tooltip: {
+            borderRadius: 12,
+          },
+        }}
+        locale={{
+          back: "Back",
+          close: "Close",
+          last: "Finish",
+          next: "Next",
+          skip: "Skip Tour",
         }}
       />
     </OnboardingContext.Provider>

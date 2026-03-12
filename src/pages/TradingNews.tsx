@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Newspaper, Globe, Bitcoin, AlertTriangle, Calendar, ExternalLink, RefreshCw, Filter } from "lucide-react";
+import { Newspaper, Globe, Bitcoin, Calendar, ExternalLink, RefreshCw, Filter, AlertTriangle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface NewsItem {
   title: string;
@@ -31,10 +32,12 @@ interface EconomicEvent {
 }
 
 const CURRENCIES = ["ALL", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"];
+const IMPACT_FILTERS = ["ALL", "high", "medium", "low"];
 
 export default function TradingNews() {
   const [activeTab, setActiveTab] = useState("forex");
   const [currencyFilter, setCurrencyFilter] = useState("ALL");
+  const [impactFilter, setImpactFilter] = useState("ALL");
   const [news, setNews] = useState<NewsItem[]>([]);
   const [events, setEvents] = useState<EconomicEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +54,6 @@ export default function TradingNews() {
       if (data?.events) setEvents(data.events);
     } catch (err) {
       console.error("Failed to fetch news:", err);
-      // Set sample data as fallback
-      setNews(getSampleNews(activeTab));
-      setEvents(getSampleEvents());
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -68,24 +68,35 @@ export default function TradingNews() {
     ? news
     : news.filter((n) => !n.currency || n.currency === currencyFilter);
 
-  const filteredEvents = currencyFilter === "ALL"
-    ? events
-    : events.filter((e) => e.currency === currencyFilter);
+  const filteredEvents = events.filter((e) => {
+    const currMatch = currencyFilter === "ALL" || e.currency === currencyFilter;
+    const impactMatch = impactFilter === "ALL" || e.impact === impactFilter;
+    return currMatch && impactMatch;
+  });
 
   const impactColor = (impact?: string) => {
-    if (impact === "high") return "bg-loss/20 text-loss border-loss/30";
+    if (impact === "high") return "bg-destructive/20 text-destructive border-destructive/30";
     if (impact === "medium") return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
     return "bg-muted text-muted-foreground border-border";
+  };
+
+  const impactDot = (impact?: string) => {
+    if (impact === "high") return "bg-destructive";
+    if (impact === "medium") return "bg-yellow-500";
+    return "bg-muted-foreground";
   };
 
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Trading News</h1>
-          <p className="text-muted-foreground text-sm mt-1">Stay updated with market-moving events.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+            <Newspaper className="w-7 h-7 text-primary" />
+            Trading News
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Real-time market news & economic calendar</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
             <SelectTrigger className="w-28 bg-secondary border-border text-foreground">
               <Filter className="w-3.5 h-3.5 mr-1" />
@@ -95,6 +106,17 @@ export default function TradingNews() {
               {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
+          {activeTab === "calendar" && (
+            <Select value={impactFilter} onValueChange={setImpactFilter}>
+              <SelectTrigger className="w-28 bg-secondary border-border text-foreground">
+                <AlertTriangle className="w-3.5 h-3.5 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {IMPACT_FILTERS.map((i) => <SelectItem key={i} value={i}>{i === "ALL" ? "All Impact" : i.charAt(0).toUpperCase() + i.slice(1)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <Button variant="outline" size="sm" onClick={fetchNews} disabled={refreshing}>
             <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -118,7 +140,7 @@ export default function TradingNews() {
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-4">
-          <EconomicCalendar events={filteredEvents} loading={loading} impactColor={impactColor} />
+          <EconomicCalendar events={filteredEvents} loading={loading} impactColor={impactColor} impactDot={impactDot} />
         </TabsContent>
       </Tabs>
     </div>
@@ -147,32 +169,45 @@ function NewsGrid({ news, loading, impactColor }: { news: NewsItem[]; loading: b
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {news.map((item, i) => (
-        <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass-card p-5 hover:border-primary/30 transition-all">
+        <motion.a
+          key={i}
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          className="glass-card p-5 hover:border-primary/30 transition-all block group"
+        >
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h3 className="text-sm font-semibold text-foreground line-clamp-2">{item.title}</h3>
+            <h3 className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{item.title}</h3>
             {item.impact && <Badge className={impactColor(item.impact)} variant="outline">{item.impact}</Badge>}
           </div>
           <p className="text-xs text-muted-foreground line-clamp-3 mb-3">{item.description}</p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground">{item.source}</span>
+              <span className="text-[10px] font-medium text-muted-foreground">{item.source}</span>
               {item.currency && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{item.currency}</Badge>}
             </div>
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary text-xs flex items-center gap-1 hover:underline">
-              Read <ExternalLink className="w-3 h-3" />
-            </a>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {item.publishedAt ? format(new Date(item.publishedAt), "MMM d, h:mm a") : ""}
+              </span>
+              <ExternalLink className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
-        </motion.div>
+        </motion.a>
       ))}
     </div>
   );
 }
 
-function EconomicCalendar({ events, loading, impactColor }: { events: EconomicEvent[]; loading: boolean; impactColor: (i?: string) => string }) {
+function EconomicCalendar({ events, loading, impactColor, impactDot }: { events: EconomicEvent[]; loading: boolean; impactColor: (i?: string) => string; impactDot: (i?: string) => string }) {
   if (loading) {
     return (
       <div className="glass-card overflow-x-auto">
-        <div className="p-8 text-center"><div className="text-muted-foreground animate-pulse">Loading events...</div></div>
+        <div className="p-8 text-center"><div className="text-muted-foreground animate-pulse">Loading calendar...</div></div>
       </div>
     );
   }
@@ -181,67 +216,69 @@ function EconomicCalendar({ events, loading, impactColor }: { events: EconomicEv
     return <div className="glass-card p-12 text-center"><p className="text-muted-foreground">No economic events for this filter.</p></div>;
   }
 
+  // Group events by date
+  const grouped = events.reduce<Record<string, EconomicEvent[]>>((acc, event) => {
+    const dateKey = event.date || "Unknown";
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(event);
+    return acc;
+  }, {});
+
   return (
-    <div className="glass-card overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border text-muted-foreground text-xs">
-            <th className="px-4 py-3 text-left font-medium">Time</th>
-            <th className="px-4 py-3 text-left font-medium">Currency</th>
-            <th className="px-4 py-3 text-left font-medium">Event</th>
-            <th className="px-4 py-3 text-left font-medium">Impact</th>
-            <th className="px-4 py-3 text-left font-medium">Forecast</th>
-            <th className="px-4 py-3 text-left font-medium">Previous</th>
-            <th className="px-4 py-3 text-left font-medium">Actual</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((event, i) => (
-            <motion.tr key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-              className="border-b border-border/50 hover:bg-secondary/40 transition-colors">
-              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{event.time}</td>
-              <td className="px-4 py-3"><Badge variant="outline" className="text-xs">{event.currency}</Badge></td>
-              <td className="px-4 py-3 text-foreground font-medium">{event.title}</td>
-              <td className="px-4 py-3"><Badge className={impactColor(event.impact)} variant="outline">{event.impact}</Badge></td>
-              <td className="px-4 py-3 text-muted-foreground">{event.forecast || "-"}</td>
-              <td className="px-4 py-3 text-muted-foreground">{event.previous || "-"}</td>
-              <td className="px-4 py-3 text-foreground font-medium">{event.actual || "-"}</td>
-            </motion.tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-4">
+      {Object.entries(grouped).map(([date, dateEvents]) => (
+        <div key={date} className="glass-card overflow-hidden">
+          <div className="px-4 py-2.5 bg-secondary/50 border-b border-border">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-primary" />
+              {date}
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground text-xs">
+                  <th className="px-4 py-2.5 text-left font-medium w-24">Time</th>
+                  <th className="px-4 py-2.5 text-left font-medium w-16">Ccy</th>
+                  <th className="px-4 py-2.5 text-left font-medium">Event</th>
+                  <th className="px-4 py-2.5 text-center font-medium w-20">Impact</th>
+                  <th className="px-4 py-2.5 text-right font-medium w-20">Forecast</th>
+                  <th className="px-4 py-2.5 text-right font-medium w-20">Previous</th>
+                  <th className="px-4 py-2.5 text-right font-medium w-20">Actual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dateEvents.map((event, i) => (
+                  <motion.tr
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className={`border-b border-border/50 hover:bg-secondary/40 transition-colors ${event.impact === "high" ? "bg-destructive/5" : ""}`}
+                  >
+                    <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap text-xs">{event.time}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="outline" className="text-xs font-bold">{event.currency}</Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-foreground font-medium text-xs">{event.title}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={`w-2 h-2 rounded-full ${impactDot(event.impact)}`} />
+                        <span className="text-[10px] text-muted-foreground capitalize">{event.impact}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">{event.forecast || "-"}</td>
+                    <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">{event.previous || "-"}</td>
+                    <td className={`px-4 py-2.5 text-right text-xs font-semibold ${event.actual ? "text-foreground" : "text-muted-foreground"}`}>
+                      {event.actual || "-"}
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   );
-}
-
-// Fallback sample data
-function getSampleNews(category: string): NewsItem[] {
-  if (category === "forex") {
-    return [
-      { title: "Fed Signals Potential Rate Pause in Next Meeting", description: "Federal Reserve officials hinted at a possible pause in interest rate hikes, citing cooling inflation data.", url: "#", source: "Reuters", publishedAt: new Date().toISOString(), category: "forex", impact: "high", currency: "USD" },
-      { title: "EUR/USD Consolidates Near 1.0850 Ahead of ECB Decision", description: "The euro remains range-bound as traders await the European Central Bank's monetary policy decision.", url: "#", source: "FX Street", publishedAt: new Date().toISOString(), category: "forex", impact: "medium", currency: "EUR" },
-      { title: "GBP Strengthens on Better-Than-Expected GDP Data", description: "Sterling gained against major currencies after UK GDP showed unexpected growth.", url: "#", source: "Bloomberg", publishedAt: new Date().toISOString(), category: "forex", impact: "high", currency: "GBP" },
-      { title: "JPY Weakens as Bank of Japan Maintains Ultra-Loose Policy", description: "The Japanese yen fell after the BOJ decided to keep its yield curve control policy unchanged.", url: "#", source: "Nikkei", publishedAt: new Date().toISOString(), category: "forex", impact: "high", currency: "JPY" },
-      { title: "AUD/USD Drops After Weak Chinese Manufacturing PMI", description: "The Australian dollar came under pressure following disappointing Chinese economic data.", url: "#", source: "CNBC", publishedAt: new Date().toISOString(), category: "forex", impact: "medium", currency: "AUD" },
-      { title: "USD/CAD Tests Resistance as Oil Prices Decline", description: "The Canadian dollar weakened against the greenback amid falling crude oil prices.", url: "#", source: "MarketWatch", publishedAt: new Date().toISOString(), category: "forex", impact: "medium", currency: "CAD" },
-    ];
-  }
-  return [
-    { title: "Bitcoin Surges Past $95,000 on ETF Inflows", description: "BTC broke through key resistance as spot ETFs continued to see record inflows.", url: "#", source: "CoinDesk", publishedAt: new Date().toISOString(), category: "crypto", impact: "high", currency: "USD" },
-    { title: "Ethereum 2.0 Staking Reaches All-Time High", description: "More than 30 million ETH is now staked on the Ethereum network.", url: "#", source: "The Block", publishedAt: new Date().toISOString(), category: "crypto", impact: "medium" },
-    { title: "Solana DeFi TVL Surpasses $15 Billion", description: "The Solana ecosystem continues to attract developers and capital.", url: "#", source: "DeFi Llama", publishedAt: new Date().toISOString(), category: "crypto", impact: "medium" },
-    { title: "SEC Approves Multiple Crypto ETF Applications", description: "Regulatory clarity boosts institutional confidence in digital assets.", url: "#", source: "Reuters", publishedAt: new Date().toISOString(), category: "crypto", impact: "high", currency: "USD" },
-  ];
-}
-
-function getSampleEvents(): EconomicEvent[] {
-  return [
-    { title: "Non-Farm Payrolls", country: "US", currency: "USD", impact: "high", date: "2026-03-08", time: "08:30 EST", forecast: "180K", previous: "175K" },
-    { title: "ECB Interest Rate Decision", country: "EU", currency: "EUR", impact: "high", date: "2026-03-08", time: "07:45 EST", forecast: "4.25%", previous: "4.25%" },
-    { title: "UK GDP (MoM)", country: "UK", currency: "GBP", impact: "high", date: "2026-03-08", time: "02:00 EST", forecast: "0.2%", previous: "0.1%", actual: "0.3%" },
-    { title: "Australia Employment Change", country: "AU", currency: "AUD", impact: "medium", date: "2026-03-08", time: "19:30 EST", forecast: "25.0K", previous: "22.5K" },
-    { title: "Canada Trade Balance", country: "CA", currency: "CAD", impact: "medium", date: "2026-03-08", time: "08:30 EST", forecast: "-1.2B", previous: "-0.8B" },
-    { title: "Japan Core CPI (YoY)", country: "JP", currency: "JPY", impact: "medium", date: "2026-03-08", time: "18:30 EST", forecast: "2.8%", previous: "2.6%" },
-    { title: "Switzerland CPI (MoM)", country: "CH", currency: "CHF", impact: "low", date: "2026-03-08", time: "02:30 EST", forecast: "0.1%", previous: "0.0%" },
-  ];
 }
