@@ -148,7 +148,7 @@ export default function Landing() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="mt-4 sm:mt-7 text-sm sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2"
           >
-            Connect your MetaTrader accounts, auto-sync trades, and unlock powerful analytics — journal, calendar, and leaderboard all in one platform.
+            Connect your MetaTrader accounts, auto-sync trades, and unlock powerful analytics — journal, calendar, market review, and real-time news all in one platform.
           </motion.p>
 
           <motion.div
