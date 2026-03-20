@@ -14,8 +14,8 @@ const features = [
   { icon: BarChart3, title: "Live Analytics", desc: "Equity curves, win rates, monthly P/L breakdowns, and pair performance at a glance.", tag: null },
   { icon: BookOpen, title: "Trade Journal", desc: "Log every trade with notes, screenshots, and strategy tags. Learn from your history.", tag: null },
   { icon: Calendar, title: "Calendar View", desc: "See your trading activity mapped to each day — spot patterns and streaks instantly.", tag: null },
-  { icon: Shield, title: "Risk Management", desc: "Track drawdown, profit factor, and risk-reward ratios to protect your capital.", tag: null },
-  { icon: Trophy, title: "Leaderboard", desc: "Benchmark your performance against the community and climb the ranks.", tag: "New" },
+  { icon: Globe, title: "Market Review", desc: "Analyze upcoming markets, document trade setups, and track whether your ideas played out.", tag: "New" },
+  { icon: Zap, title: "Trading News & Calendar", desc: "Real-time forex news and a professional economic calendar with impact filters.", tag: "New" },
 ];
 
 const stats = [
