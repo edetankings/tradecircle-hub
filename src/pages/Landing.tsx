@@ -46,19 +46,14 @@ const trustBadges = [
 const dashboardWidgets = [
   { icon: DollarSign, title: "Balance", value: "$12,450", positive: true },
   { icon: Wallet, title: "Equity", value: "$12,890", positive: true },
-  { icon: BarChart3, title: "Total Trades", value: "142", positive: true },
   { icon: Target, title: "Win Rate", value: "67.5%", sub: "96W / 46L", positive: true },
-  { icon: TrendingUp, title: "Profit Factor", value: "2.14", positive: true },
-  { icon: AlertTriangle, title: "Drawdown", value: "4.2%", sub: "Max: 8.1%", positive: true },
-  { icon: Award, title: "Best Trade", value: "+$485", sub: "EUR/USD", positive: true },
-  { icon: Shield, title: "Worst Trade", value: "-$210", sub: "GBP/JPY", positive: false },
+  { icon: BarChart3, title: "Total Trades", value: "142", positive: true },
 ];
 
 const dashboardCharts = [
-  { title: "Equity Curve", desc: "Track your account growth over time with a real-time equity line chart.", icon: Activity },
-  { title: "Weekly Profit", desc: "Visualize profit and loss aggregated by week to spot performance trends.", icon: BarChart3 },
-  { title: "Monthly Profit", desc: "See your monthly P/L breakdown with color-coded bars for wins and losses.", icon: LineChart },
-  { title: "Trade Distribution", desc: "Pie chart of wins vs losses, plus a pair-by-pair breakdown.", icon: PieChart },
+  { title: "Equity Curve", desc: "Track account growth over time with a smooth, responsive line chart.", icon: Activity },
+  { title: "Win vs Loss", desc: "Doughnut breakdown of wins vs losses with your win rate front and center.", icon: PieChart },
+  { title: "Daily Profit / Loss", desc: "Color-coded bars showing your daily P/L — green for profit, red for loss.", icon: BarChart3 },
 ];
 
 const containerVariants = {
