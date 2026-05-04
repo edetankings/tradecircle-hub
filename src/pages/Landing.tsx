@@ -269,83 +269,146 @@ export default function Landing() {
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight">Powerful analytics at a glance</h2>
             <p className="text-muted-foreground mt-3 sm:mt-5 max-w-lg mx-auto text-sm sm:text-lg leading-relaxed">
-              8 real-time widgets and 4 performance charts — everything updates automatically when you sync or add trades.
+              4 key stat widgets and 3 performance charts — everything updates dynamically when you switch accounts or sync trades.
             </p>
           </motion.div>
 
-          {/* 8 Stat Widgets Preview */}
+          {/* 4 Stat Widgets Preview */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3 mb-6 sm:mb-8"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
           >
             {dashboardWidgets.map((w) => (
               <motion.div
                 key={w.title}
                 variants={itemVariants}
-                className="glass-card p-3 sm:p-4 text-center group hover:border-primary/20 transition-all duration-300"
+                className="glass-card rounded-2xl p-4 sm:p-5 group hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm"
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                  <w.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">{w.title}</div>
+                    <div className={`text-lg sm:text-2xl font-bold mt-1 ${w.positive ? "text-foreground" : "text-loss"}`}>{w.value}</div>
+                    {w.sub && <div className="text-[10px] sm:text-xs text-profit mt-1.5 font-medium">{w.sub}</div>}
+                  </div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <w.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  </div>
                 </div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mb-1">{w.title}</div>
-                <div className={`text-sm sm:text-lg font-bold ${w.positive ? "text-foreground" : "text-loss"}`}>{w.value}</div>
-                {w.sub && <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">{w.sub}</div>}
               </motion.div>
             ))}
           </motion.div>
 
-          {/* 4 Charts Preview */}
+          {/* 3 Charts Preview */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5"
+            className="grid grid-cols-1 lg:grid-cols-6 gap-4 sm:gap-5"
           >
-            {dashboardCharts.map((c, i) => (
-              <motion.div
-                key={c.title}
-                variants={itemVariants}
-                whileHover={{ y: -4 }}
-                className="glass-card p-5 sm:p-7 group hover:border-primary/20 transition-all duration-300 relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative flex items-start gap-4">
-                  <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
-                    <c.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            {/* Equity Curve - Line */}
+            <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="glass-card rounded-2xl p-5 sm:p-6 lg:col-span-3 group hover:border-primary/20 transition-all duration-300 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-base sm:text-lg mb-1">{c.title}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{c.desc}</p>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">Equity Curve</h3>
+                </div>
+                <span className="text-[10px] text-profit uppercase tracking-wider font-semibold">+18.4%</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{dashboardCharts[0].desc}</p>
+              <div className="relative h-28 sm:h-32 bg-muted/10 rounded-xl overflow-hidden p-3">
+                <svg viewBox="0 0 200 80" className="w-full h-full" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="landingLineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--profit))" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="hsl(var(--profit))" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <motion.path
+                    d="M0,65 C20,60 30,55 45,50 C60,45 75,48 90,38 C105,28 120,32 140,22 C160,15 180,18 200,8 L200,80 L0,80 Z"
+                    fill="url(#landingLineGrad)"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, delay: 0.3 }}
+                  />
+                  <motion.path
+                    d="M0,65 C20,60 30,55 45,50 C60,45 75,48 90,38 C105,28 120,32 140,22 C160,15 180,18 200,8"
+                    fill="none"
+                    stroke="hsl(var(--profit))"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.4, ease: "easeOut" }}
+                  />
+                </svg>
+              </div>
+            </motion.div>
+
+            {/* Win vs Loss - Doughnut */}
+            <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="glass-card rounded-2xl p-5 sm:p-6 lg:col-span-3 group hover:border-primary/20 transition-all duration-300 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <PieChart className="w-4 h-4 text-primary" />
                   </div>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">Win vs Loss</h3>
                 </div>
-                {/* Mini chart mockup */}
-                <div className="relative mt-4 h-16 sm:h-20 bg-muted/10 rounded-lg flex items-end justify-evenly px-2 pb-2 gap-1">
-                  {(i === 0
-                    ? [20, 35, 30, 50, 45, 65, 55, 70, 60, 80, 75, 90]
-                    : i === 3
-                      ? [60, 40]
-                      : [30, -15, 45, 20, -10, 35, 50, -5, 25, 40, 15, 55]
-                  ).map((v, j) => (
-                    <motion.div
-                      key={j}
-                      initial={{ height: 0 }}
-                      whileInView={{ height: `${Math.abs(v)}%` }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.05 * j, duration: 0.4 }}
-                      className={`w-full rounded-sm ${
-                        i === 3
-                          ? j === 0 ? "bg-[hsl(var(--profit)/0.7)]" : "bg-[hsl(var(--loss)/0.7)]"
-                          : v >= 0 ? "bg-primary/50" : "bg-[hsl(var(--loss)/0.5)]"
-                      }`}
-                    />
-                  ))}
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">142 trades</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{dashboardCharts[1].desc}</p>
+              <div className="relative flex items-center justify-center h-28 sm:h-32">
+                <svg viewBox="0 0 100 100" className="w-24 h-24 sm:w-28 sm:h-28 -rotate-90">
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="hsl(var(--loss))" strokeWidth="14" />
+                  <motion.circle
+                    cx="50" cy="50" r="38" fill="none"
+                    stroke="hsl(var(--profit))" strokeWidth="14"
+                    strokeDasharray="238.76"
+                    initial={{ strokeDashoffset: 238.76 }}
+                    whileInView={{ strokeDashoffset: 238.76 * (1 - 0.675) }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.4, ease: "easeOut" }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl sm:text-2xl font-bold text-foreground">67%</span>
+                  <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Win Rate</span>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+            </motion.div>
+
+            {/* Daily Profit / Loss - Bars */}
+            <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="glass-card rounded-2xl p-5 sm:p-6 lg:col-span-6 group hover:border-primary/20 transition-all duration-300 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">Daily Profit / Loss</h3>
+                </div>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Last 14 days</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{dashboardCharts[2].desc}</p>
+              <div className="relative h-28 sm:h-36 flex items-end justify-evenly gap-1.5 sm:gap-2 px-1">
+                {[55, 70, -30, 45, 80, -20, 60, 90, 40, -15, 75, 50, 85, 65].map((v, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ height: 0 }}
+                    whileInView={{ height: `${Math.abs(v)}%` }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.04 * i, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className={`w-full rounded-md ${v >= 0 ? "bg-profit/80" : "bg-loss/80"}`}
+                  />
+                ))}
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* CTA under dashboard */}
