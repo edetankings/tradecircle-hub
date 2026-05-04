@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  DollarSign, TrendingUp, TrendingDown, BarChart3, Target, Shield, Award,
+  DollarSign, TrendingUp, BarChart3, Target, Shield, Award,
   AlertTriangle, Wallet, Activity,
 } from "lucide-react";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
@@ -13,20 +13,17 @@ import StatCard from "@/components/StatCard";
 import { useTrades } from "@/hooks/useTrades";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, startOfWeek, startOfMonth, isAfter } from "date-fns";
+import { format } from "date-fns";
 import AccountSelector, { SelectedAccount } from "@/components/AccountSelector";
 import { useManualAccounts } from "@/hooks/useManualAccounts";
 import { useMTAccounts } from "@/hooks/useMTAccounts";
-
-const COLORS = ["#00C896", "#FF4D4F"];
-const PAIR_COLORS = ["#5B8CFF", "#00C896", "#FF4D4F", "#FFBB28", "#8B5CF6", "#EC4899", "#14B8A6", "#F97316"];
 
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (active && payload?.length) {
     return (
       <div className="glass-card px-3 py-2 text-xs border border-border">
         <p className="text-muted-foreground">{label}</p>
-        <p className="text-foreground font-semibold">${payload[0].value?.toLocaleString()}</p>
+        <p className="text-foreground font-semibold">${Number(payload[0].value).toLocaleString()}</p>
       </div>
     );
   }
@@ -71,7 +68,6 @@ export default function Dashboard() {
     ? mtAccounts.find((a) => a.id === selectedAccount.id)
     : null;
 
-  // ── Core metrics ──
   const metrics = useMemo(() => {
     const t = trades;
     const wins = t.filter((tr) => tr.profit_loss > 0);
@@ -82,7 +78,6 @@ export default function Dashboard() {
     const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
     const winRate = t.length > 0 ? (wins.length / t.length) * 100 : 0;
 
-    // Drawdown
     const startBal = selectedManual ? Number(selectedManual.account_balance) : 10000;
     let peak = startBal;
     let maxDD = 0;
@@ -94,11 +89,8 @@ export default function Dashboard() {
       const dd = peak > 0 ? ((peak - balance) / peak) * 100 : 0;
       if (dd > maxDD) maxDD = dd;
     });
-
-    // Current drawdown
     const currentDD = peak > 0 ? ((peak - balance) / peak) * 100 : 0;
 
-    // Best & worst
     const best = t.length > 0 ? t.reduce((max, tr) => (tr.profit_loss > max.profit_loss ? tr : max), t[0]) : null;
     const worst = t.length > 0 ? t.reduce((min, tr) => (tr.profit_loss < min.profit_loss ? tr : min), t[0]) : null;
 
@@ -109,7 +101,6 @@ export default function Dashboard() {
     };
   }, [trades, selectedManual]);
 
-  // Balance & equity
   const startBalance = selectedManual ? Number(selectedManual.account_balance) : 10000;
   const accountBalance = selectedManual
     ? startBalance + metrics.totalPL
@@ -121,7 +112,7 @@ export default function Dashboard() {
     ? Number(selectedManual.account_equity) + metrics.totalPL
     : accountBalance;
 
-  // ── Chart data ──
+  // Equity curve - line chart
   const equityCurveData = useMemo(() => {
     if (trades.length === 0) return [];
     const sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date));
@@ -130,35 +121,25 @@ export default function Dashboard() {
     sorted.forEach((t) => { byDate[t.date] = (byDate[t.date] || 0) + t.profit_loss; });
     return Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0])).map(([date, pnl]) => {
       bal += pnl;
-      return { date: format(new Date(date), "MMM d"), balance: Math.round(bal) };
+      return { date: format(new Date(date), "MMM d"), equity: Math.round(bal) };
     });
   }, [trades, startBalance]);
 
-  const weeklyData = useMemo(() => {
+  // Daily P/L - bar chart
+  const dailyPnLData = useMemo(() => {
     const map: Record<string, number> = {};
-    trades.forEach((t) => {
-      const ws = format(startOfWeek(new Date(t.date), { weekStartsOn: 1 }), "MMM d");
-      map[ws] = (map[ws] || 0) + t.profit_loss;
-    });
-    return Object.entries(map).map(([week, profit]) => ({ week, profit: Math.round(profit * 100) / 100 }));
+    trades.forEach((t) => { map[t.date] = (map[t.date] || 0) + t.profit_loss; });
+    return Object.entries(map)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-14)
+      .map(([date, pnl]) => ({ day: format(new Date(date), "MMM d"), pnl: Math.round(pnl * 100) / 100 }));
   }, [trades]);
 
-  const monthlyData = useMemo(() => {
-    const map: Record<string, number> = {};
-    trades.forEach((t) => {
-      const m = format(new Date(t.date), "MMM yyyy");
-      map[m] = (map[m] || 0) + t.profit_loss;
-    });
-    return Object.entries(map).map(([month, profit]) => ({ month: month.split(" ")[0], profit: Math.round(profit * 100) / 100 }));
-  }, [trades]);
+  const winLossData = [
+    { name: "Wins", value: metrics.wins },
+    { name: "Losses", value: metrics.losses },
+  ];
 
-  const pairDistribution = useMemo(() => {
-    const map: Record<string, number> = {};
-    trades.forEach((t) => { map[t.pair] = (map[t.pair] || 0) + 1; });
-    return Object.entries(map).map(([pair, count]) => ({ pair, count })).sort((a, b) => b.count - a.count);
-  }, [trades]);
-
-  // ── Header info ──
   const accountName = selectedManual
     ? selectedManual.account_name
     : selectedMT
@@ -180,10 +161,12 @@ export default function Dashboard() {
   }
 
   const m = metrics;
+  const PROFIT = "hsl(var(--profit))";
+  const LOSS = "hsl(var(--loss))";
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Top: Header + Account Selector */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -194,133 +177,151 @@ export default function Dashboard() {
         <AccountSelector selectedAccount={selectedAccount} onSelectAccount={setSelectedAccount} />
       </motion.div>
 
-
-      {/* Stat Cards - 8 widgets */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3" data-tour="dashboard-stats">
-        <StatCard title="Balance" value={`$${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} positive={accountBalance >= 0} delay={0.03} />
-        <StatCard title="Equity" value={`$${accountEquity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={Wallet} positive={accountEquity >= 0} delay={0.06} />
-        <StatCard title="Total Trades" value={m.totalTrades} icon={BarChart3} delay={0.09} />
-        <StatCard title="Win Rate" value={`${m.winRate.toFixed(1)}%`} icon={Target} change={`${m.wins}W / ${m.losses}L`} positive={m.winRate >= 50} delay={0.12} />
-        <StatCard title="Profit Factor" value={m.profitFactor === Infinity ? "∞" : m.profitFactor.toFixed(2)} icon={TrendingUp} positive={m.profitFactor >= 1} delay={0.15} />
-        <StatCard title="Drawdown" value={`${m.currentDD.toFixed(1)}%`} icon={AlertTriangle} change={`Max: ${m.maxDD.toFixed(1)}%`} positive={m.currentDD < 10} delay={0.18} />
-        <StatCard title="Best Trade" value={m.best ? `$${m.best.profit_loss.toFixed(2)}` : "-"} icon={Award} change={m.best?.pair || ""} positive delay={0.21} />
-        <StatCard title="Worst Trade" value={m.worst ? `$${m.worst.profit_loss.toFixed(2)}` : "-"} icon={Shield} change={m.worst?.pair || ""} positive={false} delay={0.24} />
+      {/* 4 main stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="dashboard-stats">
+        <StatCard title="Balance" value={`$${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} positive={accountBalance >= 0} delay={0.05} />
+        <StatCard title="Equity" value={`$${accountEquity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={Wallet} positive={accountEquity >= 0} delay={0.1} />
+        <StatCard title="Win Rate" value={`${m.winRate.toFixed(1)}%`} icon={Target} change={`${m.wins}W / ${m.losses}L`} positive={m.winRate >= 50} delay={0.15} />
+        <StatCard title="Total Trades" value={m.totalTrades} icon={BarChart3} delay={0.2} />
       </div>
 
       {trades.length === 0 ? (
-        <div className="glass-card p-12 text-center">
+        <div className="glass-card p-12 text-center rounded-2xl">
           <Activity className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">No trades yet. Add your first trade or sync an account to see analytics!</p>
         </div>
       ) : (
         <>
-          {/* Equity Curve + Trade Distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} className="glass-card p-5 lg:col-span-2">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Equity Curve</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={equityCurveData}>
+          {/* 3 charts: Equity Curve | Win vs Loss | Daily P/L */}
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+            {/* Equity Curve - Line */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.5 }}
+              className="glass-card p-5 rounded-2xl shadow-sm lg:col-span-3"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground">Equity Curve</h3>
+                <span className="text-xs text-muted-foreground">Account growth</span>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={equityCurveData}>
                   <defs>
-                    <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#5B8CFF" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#5B8CFF" stopOpacity={0} />
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor={PROFIT} stopOpacity={0.6} />
+                      <stop offset="100%" stopColor={PROFIT} stopOpacity={1} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} domain={["dataMin - 100", "dataMax + 100"]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                  <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} domain={["dataMin - 100", "dataMax + 100"]} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="balance" stroke="#5B8CFF" strokeWidth={2} fill="url(#eqGrad)" animationDuration={1500} />
-                </AreaChart>
+                  <Line
+                    type="monotone"
+                    dataKey="equity"
+                    stroke="url(#lineGrad)"
+                    strokeWidth={2.5}
+                    dot={false}
+                    activeDot={{ r: 5, fill: PROFIT }}
+                    animationDuration={1400}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }} className="glass-card p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-foreground">Trade Distribution</h3>
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={[{ name: "Wins", value: m.wins }, { name: "Losses", value: m.losses }]} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" animationDuration={1200}>
-                    {[0, 1].map((i) => <Cell key={i} fill={COLORS[i]} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex justify-center gap-6">
+            {/* Win vs Loss - Doughnut */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="glass-card p-5 rounded-2xl shadow-sm lg:col-span-3 xl:col-span-1.5 flex flex-col"
+              style={{ gridColumn: undefined }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground">Win vs Loss</h3>
+                <span className="text-xs text-muted-foreground">{m.totalTrades} trades</span>
+              </div>
+              <div className="relative flex-1 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={winLossData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={4}
+                      dataKey="value"
+                      animationDuration={1200}
+                      stroke="none"
+                    >
+                      <Cell fill={PROFIT} />
+                      <Cell fill={LOSS} />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-bold text-foreground">{m.winRate.toFixed(0)}%</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Win Rate</span>
+                </div>
+              </div>
+              <div className="flex justify-center gap-6 mt-2">
                 <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-profit" /><span className="text-xs text-muted-foreground">Wins ({m.wins})</span></div>
                 <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-loss" /><span className="text-xs text-muted-foreground">Losses ({m.losses})</span></div>
               </div>
-
-              {/* Pair breakdown */}
-              {pairDistribution.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-border">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">By Pair</p>
-                  {pairDistribution.slice(0, 5).map((p, i) => (
-                    <div key={p.pair} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PAIR_COLORS[i % PAIR_COLORS.length] }} />
-                      <span className="text-xs text-foreground flex-1">{p.pair}</span>
-                      <span className="text-xs text-muted-foreground">{p.count}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </motion.div>
           </div>
 
-          {/* Weekly + Monthly Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }} className="glass-card p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Weekly Profit</h3>
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="week" tick={{ fill: "#6B7280", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="profit" radius={[6, 6, 0, 0]} animationDuration={1200}>
-                    {weeklyData.map((e, i) => <Cell key={i} fill={e.profit >= 0 ? "#00C896" : "#FF4D4F"} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Monthly Profit</h3>
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" tick={{ fill: "#6B7280", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#6B7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="profit" radius={[6, 6, 0, 0]} animationDuration={1200}>
-                    {monthlyData.map((e, i) => <Cell key={i} fill={e.profit >= 0 ? "#00C896" : "#FF4D4F"} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </motion.div>
-          </div>
-
-          {/* Best & Worst Trades */}
-          {m.best && m.worst && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }} className="glass-card p-5">
-                <h3 className="text-sm font-semibold text-profit mb-3 flex items-center gap-2"><Award className="w-4 h-4" /> Best Trade</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Pair</span><span className="text-foreground font-medium">{m.best.pair}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">P/L</span><span className="text-profit font-bold">+${m.best.profit_loss.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span className="text-foreground">{m.best.type}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="text-foreground">{m.best.date}</span></div>
-                </div>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }} className="glass-card p-5">
-                <h3 className="text-sm font-semibold text-loss mb-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Worst Trade</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Pair</span><span className="text-foreground font-medium">{m.worst.pair}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">P/L</span><span className="text-loss font-bold">${m.worst.profit_loss.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span className="text-foreground">{m.worst.type}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="text-foreground">{m.worst.date}</span></div>
-                </div>
-              </motion.div>
+          {/* Daily P/L - Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="glass-card p-5 rounded-2xl shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-foreground">Daily Profit / Loss</h3>
+              <span className="text-xs text-muted-foreground">Last {dailyPnLData.length} active days</span>
             </div>
-          )}
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={dailyPnLData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                <XAxis dataKey="day" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.2 }}
+                  content={({ active, payload, label }: any) => {
+                    if (active && payload?.length) {
+                      const v = payload[0].value;
+                      return (
+                        <div className="glass-card px-3 py-2 text-xs border border-border">
+                          <p className="text-muted-foreground">{label}</p>
+                          <p className={`font-semibold ${v >= 0 ? "text-profit" : "text-loss"}`}>
+                            {v >= 0 ? "+" : ""}${Number(v).toLocaleString()}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="pnl" radius={[8, 8, 0, 0]} animationDuration={1200}>
+                  {dailyPnLData.map((e, i) => (
+                    <Cell key={i} fill={e.pnl >= 0 ? PROFIT : LOSS} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+
+          {/* Secondary metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard title="Profit Factor" value={m.profitFactor === Infinity ? "∞" : m.profitFactor.toFixed(2)} icon={TrendingUp} positive={m.profitFactor >= 1} delay={0.4} />
+            <StatCard title="Drawdown" value={`${m.currentDD.toFixed(1)}%`} icon={AlertTriangle} change={`Max: ${m.maxDD.toFixed(1)}%`} positive={m.currentDD < 10} delay={0.45} />
+            <StatCard title="Best Trade" value={m.best ? `$${m.best.profit_loss.toFixed(2)}` : "-"} icon={Award} change={m.best?.pair || ""} positive delay={0.5} />
+            <StatCard title="Worst Trade" value={m.worst ? `$${m.worst.profit_loss.toFixed(2)}` : "-"} icon={Shield} change={m.worst?.pair || ""} positive={false} delay={0.55} />
+          </div>
         </>
       )}
     </div>
