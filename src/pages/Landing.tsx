@@ -1,10 +1,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  TrendingUp, BarChart3, BookOpen, Shield, ArrowRight, Calendar, Trophy,
+  TrendingUp, BarChart3, BookOpen, Shield, ArrowRight, Calendar,
   Monitor, Zap, LineChart, Users, ChevronRight, Star, CheckCircle2,
   Sparkles, Target, Brain, Globe, Lock, Smartphone, DollarSign, Wallet,
-  AlertTriangle, Award, Activity, PieChart,
+  Activity, PieChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
