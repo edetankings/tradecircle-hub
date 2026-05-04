@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "8ae996b3-e441-40da-b4a9-b757a82b77da"
+      }
+    },
+    "android": {
+      "package": "com.god_delight.vite_react_shadcn_ts"
+    },
+    "ios": {
+      "bundleIdentifier": "com.tradecircle.hub",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
