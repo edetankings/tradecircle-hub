@@ -1,3 +1,4 @@
+import { StorageImage } from "@/components/StorageImage";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Pencil, Trash2, Brain, Camera, BookOpen, Link2, Save, TrendingUp, Target, BarChart3, Zap } from "lucide-react";
