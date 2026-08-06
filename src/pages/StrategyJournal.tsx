@@ -127,8 +127,7 @@ export default function StrategyJournal() {
         const path = `${user.id}/journal/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from("screenshots").upload(path, screenshotFile);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("screenshots").getPublicUrl(path);
-        screenshot_url = urlData.publicUrl;
+        screenshot_url = path;
       }
 
       const payload = {
@@ -347,7 +346,7 @@ export default function StrategyJournal() {
                 {entry.content && <p className="text-xs text-muted-foreground mb-3 line-clamp-3">{entry.content}</p>}
 
                 {entry.screenshot_url && (
-                  <img src={entry.screenshot_url} alt="Screenshot" className="w-full h-32 object-cover rounded-lg mb-3 border border-border" />
+                  <StorageImage path={entry.screenshot_url} alt="Screenshot" className="w-full h-32 object-cover rounded-lg mb-3 border border-border" />
                 )}
 
                 {linkedTrade && (
