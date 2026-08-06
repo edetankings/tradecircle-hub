@@ -110,7 +110,17 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Work Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
   }
 }
 
@@ -120,7 +130,7 @@
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    @apply rounded-xl;
+    @apply rounded-lg;
   }
 
   .stat-card {
@@ -128,20 +138,36 @@
   }
 
   .stat-card:hover {
-    border-color: rgba(91, 140, 255, 0.25);
-    box-shadow: 0 8px 40px rgba(91, 140, 255, 0.1);
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 0 8px 40px hsl(var(--primary) / 0.14);
     transform: translateY(-2px);
   }
 
   .glow-text {
-    text-shadow: 0 0 20px rgba(91, 140, 255, 0.3);
+    text-shadow: 0 0 24px hsl(var(--primary) / 0.35);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.35);
   }
 
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(163, 100%, 50%));
+    background-image: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
+  /* Terminal dot-grid backdrop */
+  .terminal-grid {
+    background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .mono-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    @apply text-[10px] uppercase tracking-[0.2em] text-muted-foreground;
   }
 }
+
 
 @layer utilities {
   .text-profit {
