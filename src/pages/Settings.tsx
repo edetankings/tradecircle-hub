@@ -168,7 +168,7 @@ export default function Settings() {
           <div className="flex items-center gap-5">
             <div className="relative group">
               <Avatar className="w-20 h-20 border-2 border-border">
-                <AvatarImage src={profile.avatar_url} />
+                <AvatarImage src={avatarSignedUrl} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
               </Avatar>
               <button
