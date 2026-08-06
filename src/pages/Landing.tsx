@@ -280,8 +280,9 @@ export default function Landing() {
                 <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-300">
                   <s.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{s.value}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-1 font-medium">{s.label}</div>
+                <div className="font-mono text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">{s.value}</div>
+                <div className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-primary mt-2 font-semibold">{s.label}</div>
+
               </motion.div>
             ))}
           </motion.div>
