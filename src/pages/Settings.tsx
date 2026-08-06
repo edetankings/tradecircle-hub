@@ -1,3 +1,4 @@
+import { useSignedStorageUrl } from "@/components/StorageImage";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,7 +71,7 @@ export default function Settings() {
     if (!file || !user) return;
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `avatars/${user.id}.${ext}`;
+    const path = `${user.id}/avatars/avatar.${ext}`;
 
     const { error: uploadError } = await supabase.storage.from("screenshots").upload(path, file, { upsert: true });
     if (uploadError) {
@@ -79,11 +80,8 @@ export default function Settings() {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from("screenshots").getPublicUrl(path);
-    const avatar_url = urlData.publicUrl;
-
-    await supabase.from("profiles").update({ avatar_url }).eq("user_id", user.id);
-    setProfile((p) => ({ ...p, avatar_url }));
+    await supabase.from("profiles").update({ avatar_url: path }).eq("user_id", user.id);
+    setProfile((p) => ({ ...p, avatar_url: path }));
     setUploading(false);
     toast({ title: "Avatar updated" });
   };
@@ -146,6 +144,7 @@ export default function Settings() {
   };
 
   const initials = (profile.display_name || user?.email || "U").slice(0, 2).toUpperCase();
+  const avatarSignedUrl = useSignedStorageUrl(profile.avatar_url || null);
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -169,7 +168,7 @@ export default function Settings() {
           <div className="flex items-center gap-5">
             <div className="relative group">
               <Avatar className="w-20 h-20 border-2 border-border">
-                <AvatarImage src={profile.avatar_url} />
+                <AvatarImage src={avatarSignedUrl} />
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
               </Avatar>
               <button

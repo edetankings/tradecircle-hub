@@ -1,3 +1,4 @@
+import { StorageImage } from "@/components/StorageImage";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -118,8 +119,7 @@ export default function Reflections() {
       const path = `${user.id}/reflections/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("screenshots").upload(path, screenshotFile);
       if (uploadErr) { toast.error("Screenshot upload failed"); setSaving(false); return; }
-      const { data: urlData } = supabase.storage.from("screenshots").getPublicUrl(path);
-      screenshot_url = urlData.publicUrl;
+      screenshot_url = path;
     }
 
     const payload = {
@@ -418,7 +418,7 @@ export default function Reflections() {
               <Input type="file" accept="image/*" className="bg-secondary border-border" onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)} />
             </div>
             {existing?.screenshot_url && (
-              <img src={existing.screenshot_url} alt="Screenshot" className="w-16 h-16 rounded-lg object-cover border border-border" />
+              <StorageImage path={existing.screenshot_url} alt="Screenshot" className="w-16 h-16 rounded-lg object-cover border border-border" />
             )}
           </div>
         </motion.div>
@@ -514,7 +514,7 @@ function ReflectionDetail({ r, trades, onEdit }: { r: any; trades: any[]; onEdit
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Camera className="w-3.5 h-3.5 text-primary" /> Screenshot
             </h4>
-            <img src={r.screenshot_url} alt="Trade screenshot" className="w-full rounded-lg border border-border" />
+            <StorageImage path={r.screenshot_url} alt="Trade screenshot" className="w-full rounded-lg border border-border" />
           </div>
         )}
 
