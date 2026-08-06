@@ -144,6 +144,7 @@ export default function Settings() {
   };
 
   const initials = (profile.display_name || user?.email || "U").slice(0, 2).toUpperCase();
+  const avatarSignedUrl = useSignedStorageUrl(profile.avatar_url || null);
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
