@@ -113,29 +113,32 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative pt-24 sm:pt-32 md:pt-48 pb-16 sm:pb-24 md:pb-36 px-4 sm:px-6">
+      <section ref={heroRef} className="relative pt-24 sm:pt-32 md:pt-44 pb-16 sm:pb-24 md:pb-36 px-4 sm:px-6">
+        <div className="absolute inset-0 terminal-grid opacity-20 pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
         <motion.div style={{ opacity: heroOpacity, scale: heroScale, y: heroY }} className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-primary/20 bg-primary/[0.06] text-primary text-[10px] sm:text-xs font-semibold mb-6 sm:mb-10 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card/50 mb-6 sm:mb-10 backdrop-blur-sm"
           >
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden xs:inline">Now with</span> MetaTrader 4/5 Auto-Sync
-            <ChevronRight className="w-3 h-3" />
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary font-bold">System Status: Active</span>
           </motion.div>
+
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-3xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-extrabold tracking-[-0.02em] sm:tracking-[-0.03em] leading-[1.1] sm:leading-[1.05]"
+            className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.12] text-foreground"
           >
             Your Forex Trading
             <br />
             <span className="gradient-text">Command Center</span>
           </motion.h1>
+
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
@@ -153,15 +156,16 @@ export default function Landing() {
             className="mt-8 sm:mt-12 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0"
           >
             <Link to="/auth" className="w-full sm:w-auto">
-              <Button size="lg" className="gap-2 text-sm sm:text-base px-6 sm:px-10 h-12 sm:h-14 w-full sm:w-auto shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-300">
+              <Button size="lg" className="gap-2 rounded-none text-sm sm:text-base px-8 h-12 sm:h-14 w-full sm:w-auto font-bold glow-primary hover:scale-[1.03] transition-transform duration-300">
                 Start Trading Smarter <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
             <a href="#features" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="gap-2 text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 w-full sm:w-auto border-border/50 hover:bg-card hover:border-primary/20 transition-all duration-300">
+              <Button variant="outline" size="lg" className="gap-2 rounded-none text-sm sm:text-base px-8 h-12 sm:h-14 w-full sm:w-auto font-bold border-border bg-card/50 backdrop-blur-md hover:bg-secondary transition-colors duration-300">
                 Explore Features <ChevronRight className="w-4 h-4" />
               </Button>
             </a>
+
           </motion.div>
 
           {/* Trust indicators */}
@@ -185,50 +189,80 @@ export default function Landing() {
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="max-w-5xl mx-auto mt-12 sm:mt-20 relative z-10"
+          className="max-w-6xl mx-auto mt-12 sm:mt-20 relative z-10"
         >
-          <div className="glass-card p-1 sm:p-1.5 rounded-xl sm:rounded-2xl shadow-2xl shadow-primary/10 relative">
-            <div className="bg-card rounded-lg sm:rounded-xl p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-5">
-              {/* Window chrome */}
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="flex gap-1.5 sm:gap-2">
-                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-destructive/50" />
-                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500/50" />
-                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[hsl(var(--profit)/0.5)]" />
-                </div>
-                <div className="flex-1 h-5 sm:h-7 rounded-md sm:rounded-lg bg-muted/40 max-w-[200px] sm:max-w-sm mx-auto" />
+          <div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl">
+            {/* Terminal chrome */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background/40">
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-destructive/50" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                <div className="w-2 h-2 rounded-full bg-[hsl(var(--profit)/0.5)]" />
               </div>
-              {/* Stats row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-                {[
-                  { label: "Balance", val: "$12,450", color: "text-foreground" },
-                  { label: "Profit", val: "+$2,340", color: "text-profit" },
-                  { label: "Win Rate", val: "67.5%", color: "text-primary" },
-                  { label: "Trades", val: "142", color: "text-foreground" },
-                ].map((m) => (
-                  <div key={m.label} className="bg-muted/30 rounded-lg sm:rounded-xl p-2.5 sm:p-4 text-center">
-                    <div className="text-[8px] sm:text-[10px] text-muted-foreground uppercase tracking-widest font-medium">{m.label}</div>
-                    <div className={`text-base sm:text-xl font-bold ${m.color} mt-1`}>{m.val}</div>
+              <div className="font-mono text-[10px] text-muted-foreground">terminal.tradecircle.io</div>
+              <div className="w-12" />
+            </div>
+
+            <div className="p-4 sm:p-6 md:p-8 grid grid-cols-12 gap-4 sm:gap-6">
+              {/* Chart panel */}
+              <div className="col-span-12 lg:col-span-8 space-y-4 sm:space-y-6">
+                <div className="h-52 sm:h-72 w-full bg-background rounded-lg border border-border relative p-4 flex flex-col justify-end">
+                  <div className="absolute top-4 left-4 font-mono text-xs text-primary">EURUSD / 1H</div>
+                  <div className="flex items-end gap-1 h-full pt-12">
+                    {[40, 60, 55, 85, 70, 50, 78].map((h, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ delay: 0.7 + i * 0.07, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        className={`flex-1 border-t-2 border-primary ${h > 80 ? "bg-primary/40" : "bg-primary/20"}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-background p-4 border border-border rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Account Balance</div>
+                    <div className="text-base sm:text-xl font-mono font-bold text-foreground">$124,502.40</div>
+                  </div>
+                  <div className="bg-background p-4 border border-border rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Monthly P/L</div>
+                    <div className="text-base sm:text-xl font-mono font-bold text-profit">+$14,280.00</div>
+                  </div>
+                </div>
               </div>
-              {/* Chart mockup */}
-              <div className="h-24 sm:h-36 md:h-44 bg-muted/15 rounded-lg sm:rounded-xl flex items-end justify-evenly px-3 sm:px-5 pb-2 sm:pb-4 gap-1 sm:gap-1.5">
-                {[40, 55, 35, 70, 60, 80, 45, 65, 75, 90, 50, 85].map((h, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${h}%` }}
-                    transition={{ delay: 0.7 + i * 0.05, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="w-full rounded-sm sm:rounded-md bg-gradient-to-t from-primary/30 to-primary/70"
-                  />
-                ))}
+
+              {/* Executions panel */}
+              <div className="col-span-12 lg:col-span-4 bg-background border border-border rounded-lg p-5">
+                <div className="text-sm font-mono font-bold mb-4 uppercase tracking-wider">Recent Executions</div>
+                <div className="space-y-3">
+                  {[
+                    { pair: "XAUUSD", side: "SELL", time: "14:30", pl: "-0.5%", win: false },
+                    { pair: "GBPUSD", side: "BUY", time: "09:15", pl: "+1.2%", win: true },
+                    { pair: "NAS100", side: "BUY", time: "20:00", pl: "+2.8%", win: true },
+                  ].map((t) => (
+                    <div key={t.pair} className="flex justify-between items-center p-3 border border-border bg-card/30">
+                      <div className="text-left">
+                        <div className="text-xs font-bold">
+                          {t.pair} <span className={t.win ? "text-profit" : "text-loss"}>{t.side}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{t.time}</div>
+                      </div>
+                      <div className={`text-xs font-mono ${t.win ? "text-profit" : "text-loss"}`}>{t.pl}</div>
+                    </div>
+                  ))}
+                </div>
+                <Link to="/auth">
+                  <button className="w-full mt-6 py-2 border border-primary/50 text-primary text-xs font-bold font-mono uppercase tracking-widest hover:bg-primary/10 transition-colors">
+                    Expand Logs
+                  </button>
+                </Link>
               </div>
             </div>
-            <div className="absolute inset-0 rounded-xl sm:rounded-2xl border border-primary/[0.08] pointer-events-none" />
           </div>
-          <div className="absolute -bottom-8 sm:-bottom-12 left-1/2 -translate-x-1/2 w-4/5 h-16 sm:h-24 bg-primary/8 blur-[60px] sm:blur-[80px] rounded-full" />
+          <div className="absolute -bottom-8 sm:-bottom-12 left-1/2 -translate-x-1/2 w-4/5 h-16 sm:h-24 bg-primary/10 blur-[60px] sm:blur-[80px] rounded-full" />
         </motion.div>
+
       </section>
 
       {/* Stats Strip */}
