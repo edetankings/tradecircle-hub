@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import DownloadAppSection from "@/components/DownloadAppSection";
 
 const features = [
   { icon: Monitor, title: "MT4/MT5 Auto-Sync", desc: "Connect up to 3 MetaTrader accounts and auto-import your trades via MetaApi bridge.", tag: "Popular" },
@@ -627,6 +628,8 @@ export default function Landing() {
           </motion.div>
         </div>
       </section>
+
+      <DownloadAppSection />
 
       {/* CTA */}
       <section className="py-16 sm:py-24 md:py-32 px-4 sm:px-6">
