@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Download, Smartphone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,28 +36,20 @@ export default function DownloadAppSection() {
   };
 
   return (
-    <section id="download" className="py-16 sm:py-24 px-4 sm:px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-5xl mx-auto glass-card p-8 sm:p-12 grid gap-8 md:grid-cols-[auto,1fr] items-center"
-      >
-        <img src="/icon-512.png" alt="TradeCircle app icon" width={160} height={160} loading="lazy" className="w-28 h-28 sm:w-40 sm:h-40 rounded-3xl mx-auto glow-primary" />
+    <section id="download" className="border-b border-border bg-card px-4 py-20 sm:px-6 sm:py-28">
+      <div data-reveal className="mx-auto grid max-w-5xl items-center gap-8 border border-border bg-background p-7 shadow-soft sm:p-12 md:grid-cols-[auto,1fr]">
+        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-2xl border border-border bg-primary font-display text-2xl font-bold text-primary-foreground shadow-soft sm:h-36 sm:w-36">[TC]</div>
         <div className="text-center md:text-left">
-          <p className="mono-label text-primary mb-3 flex items-center gap-2 justify-center md:justify-start">
-            <Smartphone className="w-4 h-4" /> Android App
-          </p>
-          <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight mb-3">Take TradeCircle everywhere</h2>
+          <p className="mono-label mb-3 text-primary">[Android app]</p>
+          <h2 className="mb-3 font-display text-2xl font-bold sm:text-4xl">Take TradeCircle everywhere</h2>
           <p className="text-muted-foreground mb-6 text-sm sm:text-base">
             Install the app on your phone for full-screen access, a home-screen icon and instant launch.
           </p>
-          <Button size="lg" onClick={handleInstall} disabled={installed} className="gap-2 rounded-none h-12 px-8">
-            {installed ? <><CheckCircle2 className="w-4 h-4" /> App installed</> : <><Download className="w-4 h-4" /> Download for Android</>}
+          <Button size="lg" onClick={handleInstall} disabled={installed} className="h-12 rounded-md px-8">
+            {installed ? "App installed [✓]" : "Download for Android ↓"}
           </Button>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
