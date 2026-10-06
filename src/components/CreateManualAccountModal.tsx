@@ -16,7 +16,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"];
+const CURRENCIES = ["USD", "NGN", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"];
 const ACCOUNT_TYPES = ["Forex", "Crypto", "Stocks"];
 
 export default function CreateManualAccountModal({ open, onOpenChange }: Props) {
@@ -79,7 +79,11 @@ export default function CreateManualAccountModal({ open, onOpenChange }: Props) 
                 <Select value={form.account_currency} onValueChange={(v) => update("account_currency", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {CURRENCIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c === "NGN" ? "NGN — Nigerian Naira (₦)" : c}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

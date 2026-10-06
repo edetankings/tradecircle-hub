@@ -12,6 +12,13 @@ import CreateManualAccountModal from "@/components/CreateManualAccountModal";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
+const formatAccountMoney = (value: number, currency: string) =>
+  new Intl.NumberFormat(currency === "NGN" ? "en-NG" : undefined, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 export type SelectedAccount = {
   id: string;
   type: "mt" | "manual";
@@ -128,7 +135,7 @@ export default function AccountSelector({ selectedAccount, onSelectAccount }: Pr
                     <span className="font-medium truncate text-sm">{acc.account_name}</span>
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {acc.broker_name ? `${acc.broker_name} · ` : ""}{acc.account_currency} · Bal: ${Number(acc.account_balance).toLocaleString()}
+                    {acc.broker_name ? `${acc.broker_name} · ` : ""}{acc.account_currency} · Bal: {formatAccountMoney(Number(acc.account_balance), acc.account_currency)}
                   </div>
                 </div>
                 {selectedAccount?.id === acc.id && selectedAccount.type === "manual" && <Check className="w-4 h-4 text-primary shrink-0" />}
