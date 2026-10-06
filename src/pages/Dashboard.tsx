@@ -18,12 +18,19 @@ import AccountSelector, { SelectedAccount } from "@/components/AccountSelector";
 import { useManualAccounts } from "@/hooks/useManualAccounts";
 import { useMTAccounts } from "@/hooks/useMTAccounts";
 
-const ChartTooltip = ({ active, payload, label }: any) => {
+const formatAccountMoney = (value: number, currency: string, maximumFractionDigits = 2) =>
+  new Intl.NumberFormat(currency === "NGN" ? "en-NG" : undefined, {
+    style: "currency",
+    currency,
+    maximumFractionDigits,
+  }).format(value);
+
+const ChartTooltip = ({ active, payload, label, currency = "USD" }: any) => {
   if (active && payload?.length) {
     return (
       <div className="glass-card px-3 py-2 text-xs border border-border">
         <p className="text-muted-foreground">{label}</p>
-        <p className="text-foreground font-semibold">${Number(payload[0].value).toLocaleString()}</p>
+        <p className="text-foreground font-semibold">{formatAccountMoney(Number(payload[0].value), currency)}</p>
       </div>
     );
   }
@@ -67,6 +74,8 @@ export default function Dashboard() {
   const selectedMT = selectedAccount?.type === "mt"
     ? mtAccounts.find((a) => a.id === selectedAccount.id)
     : null;
+
+  const accountCurrency = selectedManual?.account_currency || "USD";
 
   const metrics = useMemo(() => {
     const t = trades;
@@ -179,8 +188,8 @@ export default function Dashboard() {
 
       {/* 4 main stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="dashboard-stats">
-        <StatCard title="Balance" value={`$${accountBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} positive={accountBalance >= 0} delay={0.05} />
-        <StatCard title="Equity" value={`$${accountEquity.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={Wallet} positive={accountEquity >= 0} delay={0.1} />
+        <StatCard title="Balance" value={formatAccountMoney(accountBalance, accountCurrency, 0)} icon={DollarSign} positive={accountBalance >= 0} delay={0.05} />
+        <StatCard title="Equity" value={formatAccountMoney(accountEquity, accountCurrency, 0)} icon={Wallet} positive={accountEquity >= 0} delay={0.1} />
         <StatCard title="Win Rate" value={`${m.winRate.toFixed(1)}%`} icon={Target} change={`${m.wins}W / ${m.losses}L`} positive={m.winRate >= 50} delay={0.15} />
         <StatCard title="Total Trades" value={m.totalTrades} icon={BarChart3} delay={0.2} />
       </div>
@@ -216,7 +225,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                   <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} domain={["dataMin - 100", "dataMax + 100"]} />
-                  <Tooltip content={<ChartTooltip />} />
+                  <Tooltip content={<ChartTooltip currency={accountCurrency} />} />
                   <Line
                     type="monotone"
                     dataKey="equity"
@@ -298,7 +307,7 @@ export default function Dashboard() {
                         <div className="glass-card px-3 py-2 text-xs border border-border">
                           <p className="text-muted-foreground">{label}</p>
                           <p className={`font-semibold ${v >= 0 ? "text-profit" : "text-loss"}`}>
-                            {v >= 0 ? "+" : ""}${Number(v).toLocaleString()}
+                            {v >= 0 ? "+" : ""}{formatAccountMoney(Number(v), accountCurrency)}
                           </p>
                         </div>
                       );
@@ -319,8 +328,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard title="Profit Factor" value={m.profitFactor === Infinity ? "∞" : m.profitFactor.toFixed(2)} icon={TrendingUp} positive={m.profitFactor >= 1} delay={0.4} />
             <StatCard title="Drawdown" value={`${m.currentDD.toFixed(1)}%`} icon={AlertTriangle} change={`Max: ${m.maxDD.toFixed(1)}%`} positive={m.currentDD < 10} delay={0.45} />
-            <StatCard title="Best Trade" value={m.best ? `$${m.best.profit_loss.toFixed(2)}` : "-"} icon={Award} change={m.best?.pair || ""} positive delay={0.5} />
-            <StatCard title="Worst Trade" value={m.worst ? `$${m.worst.profit_loss.toFixed(2)}` : "-"} icon={Shield} change={m.worst?.pair || ""} positive={false} delay={0.55} />
+            <StatCard title="Best Trade" value={m.best ? formatAccountMoney(m.best.profit_loss, accountCurrency) : "-"} icon={Award} change={m.best?.pair || ""} positive delay={0.5} />
+            <StatCard title="Worst Trade" value={m.worst ? formatAccountMoney(m.worst.profit_loss, accountCurrency) : "-"} icon={Shield} change={m.worst?.pair || ""} positive={false} delay={0.55} />
           </div>
         </>
       )}

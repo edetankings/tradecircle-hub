@@ -28,6 +28,13 @@ import { useMTAccounts } from "@/hooks/useMTAccounts";
 import { useManualAccounts } from "@/hooks/useManualAccounts";
 import { cn } from "@/lib/utils";
 
+const formatAccountMoney = (value: number, currency: string) =>
+  new Intl.NumberFormat(currency === "NGN" ? "en-NG" : undefined, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value);
+
 export function ActiveAccountSelector() {
   const [open, setOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -55,7 +62,8 @@ export function ActiveAccountSelector() {
       broker: acc.broker_name,
       balance: acc.account_balance,
       equity: acc.account_equity,
-      displayText: `${acc.account_name} - ${acc.broker_name} ($${acc.account_balance.toLocaleString()})`,
+      currency: acc.account_currency,
+      displayText: `${acc.account_name} - ${acc.broker_name} (${formatAccountMoney(acc.account_balance, acc.account_currency)})`,
     })),
   ];
 
@@ -158,7 +166,7 @@ export function ActiveAccountSelector() {
                       <div className="flex flex-col">
                         <span className="font-medium">{account.account_name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {account.broker_name} • ${account.account_balance.toLocaleString()}
+                          {account.broker_name} • {formatAccountMoney(account.account_balance, account.account_currency)}
                         </span>
                       </div>
                     </CommandItem>
