@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import tradeCircleLogo from "@/assets/tradecircle-logo-candidate-2.png";
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
@@ -38,9 +39,11 @@ export default function DownloadAppSection() {
   return (
     <section id="download" className="border-b border-border bg-card px-4 py-20 sm:px-6 sm:py-28">
       <div data-reveal className="mx-auto grid max-w-5xl items-center gap-8 border border-border bg-background p-7 shadow-soft sm:p-12 md:grid-cols-[auto,1fr]">
-        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-2xl border border-border bg-primary font-display text-2xl font-bold text-primary-foreground shadow-soft sm:h-36 sm:w-36">[TC]</div>
+        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-2xl border border-border bg-card p-3 shadow-soft sm:h-36 sm:w-36">
+          <img src={tradeCircleLogo} alt="TradeCircle TC candlestick logo" width={1024} height={1024} className="h-full w-full object-contain" />
+        </div>
         <div className="text-center md:text-left">
-          <p className="mono-label mb-3 text-primary">[Android app]</p>
+          <p className="mono-label mb-3 text-primary">[Android app · v1.1.0]</p>
           <h2 className="mb-3 font-display text-2xl font-bold sm:text-4xl">Take TradeCircle everywhere</h2>
           <p className="text-muted-foreground mb-6 text-sm sm:text-base">
             Install the app on your phone for full-screen access, a home-screen icon and instant launch.

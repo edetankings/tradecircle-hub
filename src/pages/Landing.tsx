@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/button";
 import DownloadAppSection from "@/components/DownloadAppSection";
+import tradeCircleLogo from "@/assets/tradecircle-logo-candidate-2.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -106,8 +107,9 @@ export default function Landing() {
     <div ref={pageRef} className="landing-light min-h-screen overflow-hidden bg-background text-foreground">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/landing" className="font-display text-base font-bold uppercase tracking-normal sm:text-lg">
-            [TC] <span className="text-primary">TradeCircle</span>
+          <Link to="/landing" className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-normal sm:text-lg">
+            <img src={tradeCircleLogo} alt="" width={1024} height={1024} className="h-9 w-9 object-contain" />
+            <span className="text-primary">TradeCircle</span>
           </Link>
           <nav className="hidden items-center gap-8 text-xs font-semibold uppercase md:flex">
             <a className="landing-link" href="#dashboard">Analytics</a>
@@ -268,7 +270,7 @@ export default function Landing() {
 
       <footer className="border-t border-border px-4 py-10 sm:px-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <Link to="/landing" className="font-display font-bold text-foreground">[TC] TRADECIRCLE</Link>
+          <Link to="/landing" className="flex items-center gap-2 font-display font-bold text-foreground"><img src={tradeCircleLogo} alt="" loading="lazy" width={1024} height={1024} className="h-7 w-7 object-contain" /> TRADECIRCLE</Link>
           <nav className="flex flex-wrap gap-6"><a href="#dashboard">Analytics</a><a href="#features">Features</a><a href="#how-it-works">Process</a><a href="#testimonials">Reviews</a></nav>
           <p>© {new Date().getFullYear()} TradeCircle</p>
         </div>

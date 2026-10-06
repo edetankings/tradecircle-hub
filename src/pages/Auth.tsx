@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import tradeCircleLogo from "@/assets/tradecircle-logo-candidate-2.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -63,9 +64,7 @@ export default function Auth() {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-              <TrendingUp className="w-7 h-7 text-primary" />
-            </div>
+            <img src={tradeCircleLogo} alt="TradeCircle" width={1024} height={1024} className="h-16 w-16 object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">TradeCircle</h1>
           <p className="text-muted-foreground text-sm mt-2">
