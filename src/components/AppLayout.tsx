@@ -3,12 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, LogOut, GraduationCap, Shield, Newspaper, FlaskConical, Settings, Eye,
+  Menu, X, LogOut, GraduationCap, Shield, Newspaper, FlaskConical, Settings, Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { ActiveAccountSelector } from "@/components/ActiveAccountSelector";
+import tradeCircleLogo from "@/assets/tradecircle-logo-candidate-2.png";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -38,9 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-sidebar fixed h-full z-30">
         <div className="p-6 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-primary" />
-          </div>
+          <img src={tradeCircleLogo} alt="TradeCircle" width={1024} height={1024} className="h-9 w-9 object-contain" />
           <span className="text-xl font-bold text-foreground tracking-tight">TradeCircle</span>
         </div>
         <nav className="flex-1 px-3 space-y-1 mt-2">
@@ -91,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-sidebar border-b border-border z-40 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
+          <img src={tradeCircleLogo} alt="TradeCircle" width={1024} height={1024} className="h-7 w-7 object-contain" />
           <span className="text-lg font-bold text-foreground">TradeCircle</span>
         </div>
         <div className="flex items-center gap-2">
