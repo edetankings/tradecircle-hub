@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Plus, BookOpen, Calendar, BarChart3, Trophy, PenLine,
-  Menu, X, TrendingUp, LogOut, GraduationCap, Shield, Newspaper, FlaskConical, Settings, Eye,
+  Menu, X, LogOut, GraduationCap, Shield, Newspaper, FlaskConical, Settings, Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
