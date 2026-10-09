@@ -33,3 +33,7 @@ Thumbs.db
 
 # Supabase CLI temporary files
 supabase/.temp/
+# Private documents
+private/
+*.private.md
+*.private.pdf
